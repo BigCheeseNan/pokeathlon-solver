@@ -19,6 +19,12 @@ This repository contains three main parts:
 
 ## Quick Start
 
+```bash
+py -m pip install -r web/backend/requirements.txt
+npm --prefix web/frontend install
+.\start.ps1
+```
+
 - Full stack: run start.ps1 from the repo root.
 - Backend: see web/README.md
 - Solver core: see packages/solver_core/README.md
