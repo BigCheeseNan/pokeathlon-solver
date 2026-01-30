@@ -1,0 +1,21 @@
+# Python build artifacts
+*.pyc
+__pycache__/
+*.egg-info/
+dist/
+build/
+
+# IMPORTANT: Do NOT ignore DLLs in bindings/ (they're needed)
+# But do ignore .pyc and cache files
+src/solver_core/bindings/__pycache__/
+src/solver_core/poke_finder/__pycache__/
+src/solver_core/main/__pycache__/
+src/solver_core/recipe/__pycache__/
+
+# Test cache
+.pytest_cache/
+tests/__pycache__/
+
+# Coverage
+.coverage
+htmlcov/

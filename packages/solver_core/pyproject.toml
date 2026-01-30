@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pokeathlon-solver-core"
+version = "1.0.0"
+description = "Core solver logic for Pokeathlon stat optimization"
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = []
+
+[project.scripts]
+pokeathlon-solver = "solver_core.cli:main"
+
+[project.optional-dependencies]
+native = []  # For C bindings if available
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"solver_core.bindings" = ["*.dll", "*.so", "*.dylib"]
+"solver_core.poke_finder" = ["*.json"]

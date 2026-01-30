@@ -1,0 +1,23 @@
+# CMake build artifacts
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# Compiled binaries (in this directory - we copy them to solver_core/bindings/)
+*.dll
+*.so
+*.dylib
+*.exe
+*.out
+*.o
+*.obj
+*.a
+*.lib
+
+# Build outputs
+bin/
+lib/

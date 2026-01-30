@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtual environment (if created here)
+venv/
+.venv/
+
+# FastAPI / uvicorn
+*.log
+
+# Environment variables
+.env
+.env.local
