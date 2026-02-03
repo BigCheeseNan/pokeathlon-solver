@@ -6,6 +6,7 @@ type Props = {
     loading: boolean;
     copy: (t: string) => void;
     showAdvanced: boolean;
+    showSeed: boolean;
     topNSolutions: number | "";
 };
 
@@ -14,6 +15,7 @@ function PokemonResult({
     loading,
     copy,
     showAdvanced,
+    showSeed,
     topNSolutions,
 }: Props) {
     if (result) {
@@ -23,6 +25,7 @@ function PokemonResult({
                     c={result}
                     copy={copy}
                     showAdvanced={showAdvanced}
+                    showSeed={showSeed}
                     topN={topNSolutions}
                 />
             </section>

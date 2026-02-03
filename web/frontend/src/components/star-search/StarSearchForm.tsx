@@ -50,7 +50,7 @@ function StarSearchForm({
                     />
                 ))}
             </div>
-            <div className="row">
+            <div className="row" title="The number of candidate Pokemon to consider, sorted by highest bonus points">
                 <label className="label">Top N Pokemon</label>
                 <input
                     type="number"
@@ -63,7 +63,7 @@ function StarSearchForm({
                 />
             </div>
 
-            <div className="row">
+            <div className="row" title="Whether to show the PID/seed for RNG manipulation (check natural catch odds in advanced info to see if needed)">
                 <label className="label">Compute PID/seed</label>
                 <input
                     type="checkbox"
@@ -73,7 +73,8 @@ function StarSearchForm({
                     }
                 />
             </div>
-            <div className="row">
+            <div className="row" title="Min ingredients minimizes apricorns used in the recipe at the cost of introducing more constraints on PID
+Better Seeds finds a recipe that minimizes the constraints on the PID (use this if you don't want to use RNG manip)">
                 <label className="label">Search mode</label>
                 <select
                     value={values.searchMode}
@@ -88,8 +89,8 @@ function StarSearchForm({
                     <option value="max">Better seeds</option>
                 </select>
             </div>
-            <div className="row">
-                <label className="label">Allowed days (1-31)</label>
+            <div className="row" title="Use this to force the PID to work on specific days (useful when you need different Pokemon on the same team)">
+                <label className="label">Required days (1-31)</label>
                 <input
                     type="text"
                     placeholder="e.g., 1,5,10 (leave empty for all)"
@@ -109,7 +110,7 @@ function StarSearchForm({
                     }
                 />
             </div>
-            <div className="row">
+            <div className="row" title="The maximum number of solutions (natures) to return. Leave empty to return all">
                 <label className="label">Top N solutions</label>
                 <input
                     type="number"

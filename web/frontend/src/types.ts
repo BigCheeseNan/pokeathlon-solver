@@ -25,7 +25,7 @@ export type Solution = {
     required_daily: number[];
     flavors: number[];
     mildness: number;
-    grouped_ingredients: Array<{ ingredient: string; count: number }>;
+    grouped_ingredients: Array<{ ingredient: FlavorKey; count: number }>;
     seed_result: SeedResult | null;
 };
 
@@ -77,3 +77,5 @@ export type PokemonCandidatesRequest = {
 };
 
 export type StatKey = "speed" | "power" | "skill" | "stamina" | "jump";
+
+export type FlavorKey = "spicy" | "dry" | "sweet" | "bitter" | "sour" | "strong" | "mild";

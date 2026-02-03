@@ -222,6 +222,7 @@ function PokemonSearchMode() {
                 loading={loading}
                 copy={copy}
                 showAdvanced={formValues.showAdvanced}
+                showSeed={formValues.computeSeed}
                 topNSolutions={formValues.topNSolutions}
             />
         </>

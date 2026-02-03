@@ -1,4 +1,4 @@
-import type { StatKey } from "./types";
+import type { FlavorKey, StatKey } from "./types";
 
 export const STAT_ORDER: StatKey[] = [
     "speed",
@@ -14,3 +14,13 @@ export const DIFFS_ORDER: StatKey[] = [
     "jump",
     "speed",
 ];
+
+export const FlavorsToColor: Record<FlavorKey, string> = {
+    sweet: "pink",
+    spicy: "red",
+    dry: "blue",
+    bitter: "green",
+    sour: "yellow",
+    strong: "black",
+    mild: "white",
+};

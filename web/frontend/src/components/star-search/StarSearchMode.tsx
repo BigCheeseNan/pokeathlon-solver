@@ -156,6 +156,7 @@ function StarSearchMode() {
                         selectedPokemon={selectedPokemon}
                         copy={copy}
                         showAdvanced={formValues.showAdvanced}
+                        showSeed={formValues.computeSeed}
                         topNSolutions={formValues.topNSolutions}
                     />
                 </section>

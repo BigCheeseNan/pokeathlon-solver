@@ -7,6 +7,7 @@ type Props = {
     selectedPokemon: PokemonCandidate | null;
     copy: (t: string) => void;
     showAdvanced: boolean;
+    showSeed: boolean;
     topNSolutions: number | "";
 };
 
@@ -16,6 +17,7 @@ function StarSearchResult({
     selectedPokemon,
     copy,
     showAdvanced,
+    showSeed,
     topNSolutions,
 }: Props) {
     if (result) {
@@ -25,6 +27,7 @@ function StarSearchResult({
                     c={result}
                     copy={copy}
                     showAdvanced={showAdvanced}
+                    showSeed={showSeed}
                     topN={topNSolutions}
                 />
             </div>

@@ -99,6 +99,11 @@
   gap: 12px;
 }
 
+div[title] {
+  width: fit-content;
+  max-width: 100%;
+}
+
 .label {
   min-width: 140px;
   color: var(--text-secondary);
