@@ -15,7 +15,13 @@ This version uses a greedy/heuristic approach for flavors, but now enumerates al
 
 """
 
-from solver_core.constants import intup, NATURES, Solution
+from solver_core.constants import (
+    intup,
+    NATURES,
+    Solution,
+    PAIRS_BY_PRIORITY_PREFER_POWER,
+    PAIRS_BY_PRIORITY_PREFER_STAMINA,
+)
 from .flavors import find_flavors
 from .modifiers import (
     apply_nature_effect,
@@ -23,13 +29,35 @@ from .modifiers import (
     required_daily_modifiers,
     star_to_min_modifier,
 )
+from .utils import is_feasible
 
 
 def _solve_for_nature(
     desired_stars: intup, nat: tuple[str, int, int, bool], mode: str = "min"
 ) -> Solution | None:
     """Try to build a Solution for a single nature."""
-    modifiers = [9 if mode == "min" else -9] * 5
+    if mode == "min":
+        # Choose the feasible (power, stamina) pair with the highest sum.
+        # Tie-break by the stat with the higher desired_star.
+        daily_mods = [9] * 5
+        prefer_idx = 0 if desired_stars[0] >= desired_stars[1] else 1
+        pairs_by_priority = (
+            PAIRS_BY_PRIORITY_PREFER_POWER
+            if prefer_idx == 0
+            else PAIRS_BY_PRIORITY_PREFER_STAMINA
+        )
+
+        for _, p, s in pairs_by_priority:
+            if is_feasible(nat, p, s):
+                daily_mods[0] = p
+                daily_mods[1] = s
+                break
+        else:
+            return None
+    else:
+        daily_mods = [-9] * 5
+
+    modifiers = daily_mods
     modifiers[nat[1]] += 10 if nat[3] else 35
     modifiers[nat[2]] += -10 if nat[3] else -35
 

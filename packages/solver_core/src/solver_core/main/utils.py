@@ -1,4 +1,4 @@
-from solver_core.constants import intup, PokeathlonStats, NATURES
+from solver_core.constants import intup, PokeathlonStats, NATURES, ODD_INDEX, FEAS_MOD_TABLE, NATURE_TO_INDEX
 
 
 def reorder_speed_to_stat_flavor(v: intup) -> intup:
@@ -92,3 +92,42 @@ def clamp_daily_requirement(x: int) -> int | None:
     if req > 9:
         return None
     return req
+
+def is_feasible(nature: tuple[str, int, int, bool], power_mod: int, stamina_mod: int) -> bool:
+    """Check if a given nature, power, stamina mod are achievable.
+
+    Inputs:
+    - nature: (name, primary_flavor, secondary_flavor, is_neutral)
+    - power_mod: int in [-9..9]
+    - stamina_mod: int in [-9..9]
+
+    Output:
+    - True if feasible, False if infeasible
+    """
+    nat = NATURE_TO_INDEX[nature]
+    p = ODD_INDEX[power_mod]
+    s = ODD_INDEX[stamina_mod]
+    return (FEAS_MOD_TABLE[nat][p] >> s) & 1 == 1
+
+if __name__ == "__main__":
+    # Simple test
+    nat = NATURES[0]  # Hardy
+    print(is_feasible(nat, 1, -1))  # Expected: True
+    print(is_feasible(nat, -9, -9)) # Expected: True
+    print(is_feasible(nat, 5, 5))   # Expected: True
+    print(is_feasible(nat, 9, 9))   # Expected: False
+    print(is_feasible(nat, 7, 5))   # Expected: False
+    print(is_feasible(nat, 5, 7))   # Expected: False
+    print(is_feasible(nat, 9, -9))   # Expected: False
+    print(is_feasible(nat, -9, 9))   # Expected: True
+    print(is_feasible(nat, 7, -9))   # Expected: False
+    print(is_feasible(nat, 5, 9))   # Expected: False
+    
+    rows = []
+    for pow_mod in range(-9, 10, 2):
+        row = []
+        for stam_mod in range(-9, 10, 2):
+            row.append('T' if is_feasible(nat, pow_mod, stam_mod) else 'F')
+        rows.append(' '.join(row))
+    print('\n'.join(rows))
+    
