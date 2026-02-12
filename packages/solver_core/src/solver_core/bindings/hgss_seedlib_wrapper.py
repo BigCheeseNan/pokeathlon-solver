@@ -112,7 +112,7 @@ def _get_lib(lib_path: Path | None = None) -> HGSSSeedLib:
 
 def find_best_seed_for_criteria(
     required_daily_stat_flavor: intup,
-    allowed_mod_mask: int,
+    allowed_mod: int,
     allowed_x_values: list[int] | None = None,
     *,
     quiet: bool = True,
@@ -124,7 +124,7 @@ def find_best_seed_for_criteria(
     
     Args:
         required_daily_stat_flavor: Minimum daily bonuses needed (STAT_FLAVOR order)
-        allowed_mod_mask: Bitmask of allowed PID mod 25 values
+        allowed_mod: Required nature
         allowed_x_values: Optional list of allowed days (1-31). If None, all days allowed
         quiet: Suppress C library output
         lib_path: Custom library path (default searches standard locations)
@@ -161,7 +161,7 @@ def find_best_seed_for_criteria(
 
     rc = lib.pokeathlonFindBestSeedForCriteria(
         bonuses_arr,
-        ctypes.c_uint32(allowed_mod_mask),
+        ctypes.c_uint32(allowed_mod),
         ctypes.c_uint32(allowed_x_mask),
         ctypes.byref(out_offset),
         ctypes.byref(out_x_mask),
@@ -194,7 +194,7 @@ if __name__ == "__main__":
     # Input order: (power, stamina, skill, jump, speed)
     result = find_best_seed_for_criteria(
         required_daily_stat_flavor=(5, -9, 9, -9, -7),
-        allowed_mod_mask=1 << 3 | 1 << 4,  # Only mod 25 natures 3 and 4
+        allowed_mod=1 << 3 | 1 << 4,  # Only mod 25 natures 3 and 4
         quiet=False,
     )
     print("Result:", result)

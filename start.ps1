@@ -26,7 +26,7 @@ try {
     $backendJob = Start-Job -ScriptBlock {
         param($dir)
         Set-Location $dir
-        uvicorn main:app --reload --host 0.0.0.0 --port 8000 2>&1
+        python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000 2>&1
     } -ArgumentList $backendDir
     
     # Wait a moment for backend to start

@@ -9,28 +9,20 @@
 #define SEEDLIB_API
 #endif
 
-// Find the first seed that produces a PID with the given 5-digit offset at frame 0.
-// offset must be in [0..99999] and corresponds to pid % 100000.
-int hgssPidSearchForOffsetNoAdvRange(
-	uint32_t target_offset,
-	uint32_t* out_pid,
-	uint32_t* out_seed
-);
-
-// Library API: find the best PID candidate (by longest consecutive valid-day streak,
-// then total valid days) and then find the first seed producing that candidate.
+// Library API: find the best PID candidates (by longest consecutive valid-day streak,
+// then total valid days) and then find the first seed producing any tied-best offset.
 //
 // target_bonuses order is: speed, jump, skill, stamina, power.
-// allowed_mod_mask: bit i set means allow pid % 25 == i.
+// allowed_mod: allowed pid % 25 value.
 // allowed_x_mask: bit i set means allow day i (1..31). If 0, all days allowed.
 //
 // Returns:
 //  0: success
 //  1: no valid 5-digit offsets for the criteria
-//  2: could not find a seed for the best offset
+//  2: could not find a seed for any tied-best offset
 SEEDLIB_API int pokeathlonFindBestSeedForCriteria(
 	const int target_bonuses[5],
-	uint32_t allowed_mod_mask,
+	uint32_t allowed_mod,
 	uint32_t allowed_x_mask,
 	uint32_t* out_offset,
 	uint32_t* out_x_mask,

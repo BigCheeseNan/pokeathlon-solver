@@ -10,14 +10,7 @@ type Props = {
     topNSolutions: number | "";
 };
 
-function PokemonResult({
-    result,
-    loading,
-    copy,
-    showAdvanced,
-    showSeed,
-    topNSolutions,
-}: Props) {
+function PokemonResult({ result, loading, copy, showAdvanced, showSeed, topNSolutions }: Props) {
     if (result) {
         return (
             <section className="results">

@@ -1,20 +1,20 @@
 #define RECIPECALC_EXPORTS
 #include "recipe_calculator.h"
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdint.h>
 
 // Configuration constants
-#define INITIAL_NODE_POOL_SIZE 65536        // Starting node pool capacity (2^16)
-#define MAX_NODE_POOL_SIZE 134217728         // Maximum node pool capacity (2^27)
-#define NODE_POOL_GROWTH_FACTOR 2.0         // Growth multiplier when pool is full
-#define INITIAL_HASH_SIZE 262144            // Initial hash table size (2^18)
-#define INITIAL_HEAP_SIZE 128               // Initial heap capacity
-#define MAX_FLAVOR 63                       // Maximum value for each flavor
-#define MAX_TOTAL 100                       // Maximum sum of all flavors
-#define STRONG_INGREDIENT_THRESHOLD 90      // Max total before blocking 'strong' ingredient
+#define INITIAL_NODE_POOL_SIZE 65536   // Starting node pool capacity (2^16)
+#define MAX_NODE_POOL_SIZE 16777216    // Maximum node pool capacity (2^24)
+#define NODE_POOL_GROWTH_FACTOR 2.0    // Growth multiplier when pool is full
+#define INITIAL_HASH_SIZE 262144       // Initial hash table size (2^18)
+#define INITIAL_HEAP_SIZE 128          // Initial heap capacity
+#define MAX_FLAVOR 63                  // Maximum value for each flavor
+#define MAX_TOTAL 100                  // Maximum sum of all flavors
+#define STRONG_INGREDIENT_THRESHOLD 90 // Max total before blocking 'strong' ingredient
 
 // Error codes
 typedef enum {
@@ -29,8 +29,8 @@ typedef struct Node {
     int32_t parent_idx; // node index, needs full range
     int32_t heap_idx;   // index in the heap (-1 if not in heap)
     uint8_t flavors[5]; // 0-63, 5 bytes
-    uint8_t g;         // cost (0-100 typical), 1 byte
-    uint8_t f;         // g + h, 1 byte
+    uint8_t g;          // cost (0-100 typical), 1 byte
+    uint8_t f;          // g + h, 1 byte
     int8_t ingredient;  // ingredient applied (0-6, or -1), 1 byte
     // Total: 4 + 4 + 5 + 1 + 1 + 1 = 16 bytes
 } Node;
@@ -52,7 +52,7 @@ static inline uint32_t encode_flavors_u8(const uint8_t f[5]) {
 typedef struct {
     uint32_t key;
     int idx;
-    uint8_t closed; // whether this node has been expanded
+    uint32_t closed; // whether this node has been expanded
 } HashEntry;
 
 #define HASH_EMPTY 0U
@@ -100,7 +100,11 @@ static int hash_find_and_close_u8(FlavorHash *h, const uint8_t flavors[5], int *
 }
 
 // Find a key and return whether it's closed
-static int hash_find_with_closed_u8(const FlavorHash *h, const uint8_t flavors[5], int *out_is_closed) {
+static int hash_find_with_closed_u8(
+    const FlavorHash *h,
+    const uint8_t flavors[5],
+    int *out_is_closed
+) {
     uint32_t key = encode_flavors_u8(flavors);
     size_t mask = h->cap - 1;
     size_t i = hash_mix(key) & mask;
@@ -272,7 +276,7 @@ static inline int heuristic_u8(const uint8_t cur[5], const int target[5]) {
     }
     if (cand_count == 0)
         return base_bound(defs);
-    
+
     // Sort candidates by (MAX_FLAVOR - target[i]) ascending (insertion sort for small array)
     for (int i = 1; i < cand_count; i++) {
         int key = cand[i];
@@ -284,20 +288,19 @@ static inline int heuristic_u8(const uint8_t cur[5], const int target[5]) {
         }
         cand[j + 1] = key;
     }
-    
+
     // Apply penalty to first (cand_count + 1) / 2 candidates
     int penalty_count = (cand_count + 1) / 2;
     for (int k = 0; k < penalty_count; k++) {
         int idx = cand[k];
         defs[idx] = MAX_FLAVOR - cur[idx];
     }
-    
+
     return base_bound(defs);
 }
 
 // Simple open list (binary heap)
-typedef struct
-{
+typedef struct {
     int *idxs;
     int size;
     int cap;
@@ -398,7 +401,6 @@ RECIPEC_API void recipe_calc_set_verbose(int enabled) {
     g_verbose_enabled = enabled ? 1 : 0;
 }
 
-
 // A* search for minimal ingredient sequence to reach target flavor vector from [0,0,0,0,0].
 // Returns number of steps, or negative error code. Fills steps_out with ingredient indices.
 RECIPEC_API int astar_minimal_recipe_c(const int target[5], int *steps_out, int max_steps) {
@@ -414,8 +416,13 @@ RECIPEC_API int astar_minimal_recipe_c(const int target[5], int *steps_out, int 
 
     // Allocate data structures with initial capacity
     int node_pool_capacity = INITIAL_NODE_POOL_SIZE;
-    if (g_verbose_enabled)
-        printf("Allocating initial node pool: %d nodes (%zu bytes)\n", node_pool_capacity, sizeof(Node) * node_pool_capacity);
+    if (g_verbose_enabled) {
+        printf(
+            "Allocating initial node pool: %d nodes (%zu bytes)\n",
+            node_pool_capacity,
+            sizeof(Node) * node_pool_capacity
+        );
+    }
     Node *nodes = (Node *)calloc(node_pool_capacity, sizeof(Node));
     FlavorHash table;
     hash_init(&table, INITIAL_HASH_SIZE);
@@ -459,28 +466,27 @@ RECIPEC_API int astar_minimal_recipe_c(const int target[5], int *steps_out, int 
         }
         relevant_ingredients[relevant_count++] = 5; // mild
         relevant_ingredients[relevant_count++] = 6; // strong
-    }
-    else {
+    } else {
         for (int i = 0; i < 7; i++)
             relevant_ingredients[relevant_count++] = i;
     }
 
     while (open.size) {
         int idx = heap_pop(&open);
-        
+
         // Check if already expanded and mark as closed in one operation
         int is_closed;
         hash_find_and_close_u8(&table, nodes[idx].flavors, &is_closed);
         if (is_closed)
             continue;
-        
+
         // Quick goal test: if h=0, we're at target (avoids computing h again)
         int h = nodes[idx].f - nodes[idx].g;
         if (h == 0 && flavors_match_u8(nodes[idx].flavors, target)) {
             goal_idx = idx;
             break;
         }
-        
+
         // expand
         for (int k = 0; k < relevant_count; k++) {
             int ing = relevant_ingredients[k];
@@ -491,7 +497,7 @@ RECIPEC_API int astar_minimal_recipe_c(const int target[5], int *steps_out, int 
             }
             uint8_t nf[5];
             apply_ingredient_u8(nodes[idx].flavors, ing, nf);
-            
+
             int is_closed;
             int existing = hash_find_with_closed_u8(&table, nf, &is_closed);
             int tentative_g = nodes[idx].g + 1;
@@ -503,7 +509,7 @@ RECIPEC_API int astar_minimal_recipe_c(const int target[5], int *steps_out, int 
                     nodes[existing].f = tentative_g + heuristic_u8(nf, target);
                     nodes[existing].parent_idx = idx;
                     nodes[existing].ingredient = ing;
-                    
+
                     if (is_closed) {
                         // Node was closed - reopen it
                         hash_unclose_u8(&table, nf);
@@ -515,33 +521,39 @@ RECIPEC_API int astar_minimal_recipe_c(const int target[5], int *steps_out, int 
                             return ERR_MEMORY_ALLOCATION;
                         }
                         reopened_count++;
-                    }
-                    else {
+                    } else {
                         // Node is still in open list - just update its position
                         heap_decrease_key(&open, existing);
                     }
                 }
-            }
-            else {
+            } else {
                 // Create new node - grow pool if needed
                 if (node_count >= node_pool_capacity) {
                     if (node_pool_capacity >= MAX_NODE_POOL_SIZE) {
-                        printf("ERROR: Node pool exhausted at maximum size %d nodes!\n", node_pool_capacity);
+                        printf(
+                            "ERROR: Node pool exhausted at maximum size %d nodes!\n",
+                            node_pool_capacity
+                        );
                         free(open.idxs);
                         free(nodes);
                         free(table.entries);
                         return ERR_NODE_POOL_EXHAUSTED;
                     }
-                    
+
                     // Grow the pool
                     size_t new_capacity = (size_t)(node_pool_capacity * NODE_POOL_GROWTH_FACTOR);
                     if (new_capacity > MAX_NODE_POOL_SIZE)
                         new_capacity = MAX_NODE_POOL_SIZE;
-                    
-                          if (g_verbose_enabled)
-                           printf("Growing node pool from %d to %zu nodes (%zu bytes)\n",
-                               node_pool_capacity, new_capacity, sizeof(Node) * new_capacity);
-                    
+
+                    if (g_verbose_enabled) {
+                        printf(
+                            "Growing node pool from %d to %zu nodes (%zu bytes)\n",
+                            node_pool_capacity,
+                            new_capacity,
+                            sizeof(Node) * new_capacity
+                        );
+                    }
+
                     Node *new_nodes = (Node *)realloc(nodes, new_capacity * sizeof(Node));
                     if (!new_nodes) {
                         printf("ERROR: Failed to grow node pool!\n");
@@ -550,15 +562,15 @@ RECIPEC_API int astar_minimal_recipe_c(const int target[5], int *steps_out, int 
                         free(table.entries);
                         return ERR_MEMORY_ALLOCATION;
                     }
-                    
+
                     // Zero out the new portion
                     memset(new_nodes + node_pool_capacity, 0, (new_capacity - node_pool_capacity) * sizeof(Node));
-                    
+
                     nodes = new_nodes;
                     open.nodes = nodes; // Update heap's pointer to nodes
                     node_pool_capacity = (int)new_capacity;
                 }
-                
+
                 Node n;
                 for (int i = 0; i < 5; i++)
                     n.flavors[i] = nf[i];

@@ -1,9 +1,6 @@
 import { useCallback, useState } from "react";
 import { postPokemonCandidates } from "../api";
-import type {
-    PokemonCandidatesRequest,
-    PokemonCandidatesResponse,
-} from "../types";
+import type { PokemonCandidatesRequest, PokemonCandidatesResponse } from "../types";
 import { toErrorMessage } from "../utils/errors";
 
 export type PokemonCandidatesParams = {
@@ -13,9 +10,7 @@ export type PokemonCandidatesParams = {
 };
 
 export function usePokemonCandidates() {
-    const [candidates, setCandidates] = useState<PokemonCandidatesResponse | null>(
-        null
-    );
+    const [candidates, setCandidates] = useState<PokemonCandidatesResponse | null>(null);
     const [isSearching, setIsSearching] = useState(false);
     const [error, setError] = useState<string | null>(null);
 

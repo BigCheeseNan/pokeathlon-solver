@@ -23,15 +23,14 @@ function CaseView({
             {showAdvanced ? (
                 <div className="meta">
                     <div>
-                        <b>Difference to target stars (speed, power, skill, stamina, jump)</b>: {" "}
+                        <b>Difference to target stars (speed, power, skill, stamina, jump)</b>:{" "}
                         {reorderDiffsToStats(c.desired_star_diffs)
                             .map((d) => (d > 0 ? `+${d}` : d.toString()))
                             .join(", ")}
                     </div>
                     <div>
-                        <b>Possible Natures</b>: {c.solutions_total} |{" "}
-                        <b>With recipes</b>: {c.solutions_with_recipes} |{" "}
-                        <b>Recipe failures</b>: {c.recipe_failures} |{" "}
+                        <b>Possible Natures</b>: {c.solutions_total} | <b>With recipes</b>:{" "}
+                        {c.solutions_with_recipes} | <b>Recipe failures</b>: {c.recipe_failures} |{" "}
                         <b>Invalid PIDs</b>: {c.invalid_seeds}
                     </div>
                 </div>
@@ -50,9 +49,8 @@ function CaseView({
                     <div key={idx} className="card">
                         <div className="cardTop">
                             <div>
-                                <b>#{idx + 1}</b> nature: ({r.nature.index}){" "}
-                                {r.nature.name} (+{r.nature.plus}, -
-                                {r.nature.minus}
+                                <b>#{idx + 1}</b> nature: ({r.nature.index}) {r.nature.name} (+
+                                {r.nature.plus}, -{r.nature.minus}
                                 {showAdvanced ? `, Δ=${r.nature.delta}` : ""})
                             </div>
                         </div>
@@ -60,31 +58,28 @@ function CaseView({
                             {showAdvanced ? (
                                 <>
                                     <div title="A modifier between -9 and +9 that depends on PID">
-                                        <b>Required daily (speed, power, skill, stamina, jump)</b>: {" "}
+                                        <b>Required daily (speed, power, skill, stamina, jump)</b>:{" "}
                                         {reorderDiffsToStats(r.required_daily).join(", ")}{" "}
                                         {`total=${r.daily_sum}`}
                                     </div>
                                     <div title="The flavors of the required aprijuice">
-                                        <b>Flavors (power, stamina, skill, jump, speed)</b>: {r.flavors.join(", ")}
+                                        <b>Flavors (power, stamina, skill, jump, speed)</b>:{" "}
+                                        {r.flavors.join(", ")}
                                     </div>
                                 </>
                             ) : null}
                             <div title="The recipe for the drink. Order is important!">
-                                <b>Ingredients</b>: {" "}
+                                <b>Ingredients</b>:{" "}
                                 {r.grouped_ingredients.length
                                     ? r.grouped_ingredients
-                                          .map(
-                                              (g) =>
-                                                  `${FlavorsToColor[g.ingredient]} x${g.count}`
-                                          )
+                                          .map((g) => `${FlavorsToColor[g.ingredient]} x${g.count}`)
                                           .join(", ")
                                     : "No aprijuice needed"}
-                                {showAdvanced
-                                    ? ` (total=${r.ingredients})`
-                                    : ""}
+                                {showAdvanced ? ` (total=${r.ingredients})` : ""}
                                 {(r.mildness > 0 || showAdvanced) && (
                                     <span>
-                                        {" "} | <b>Mildness</b>: {r.mildness}
+                                        {" "}
+                                        | <b>Mildness</b>: {r.mildness}
                                     </span>
                                 )}
                             </div>
@@ -96,11 +91,7 @@ function CaseView({
                                             <button
                                                 className="mini"
                                                 onClick={() =>
-                                                    copy(
-                                                        hex32(
-                                                            r.seed_result!.pid
-                                                        ).slice(2)
-                                                    )
+                                                    copy(hex32(r.seed_result!.pid).slice(2))
                                                 }
                                             >
                                                 copy
@@ -111,18 +102,14 @@ function CaseView({
                                             <button
                                                 className="mini"
                                                 onClick={() =>
-                                                    copy(
-                                                        hex32(
-                                                            r.seed_result!.seed
-                                                        ).slice(2)
-                                                    )
+                                                    copy(hex32(r.seed_result!.seed).slice(2))
                                                 }
                                             >
                                                 copy
                                             </button>
                                         </div>
                                         <div title="Days on which the PID gives the correct modifiers">
-                                            <b>Valid days</b>: {" "}
+                                            <b>Valid days</b>:{" "}
                                             {r.seed_result.days.length == 31
                                                 ? "All days"
                                                 : r.seed_result.days.join(", ")}
@@ -131,18 +118,18 @@ function CaseView({
                                                 : ""}
                                         </div>
                                         {showAdvanced ? (
-                                            <div title="Odds of catching the Pokemon without RNG manip, specific to the nature.
-If required days aren’t specified, odds include solutions that work on other days.">
-                                                <b>Natural catch odds</b>: {" "}
+                                            <div
+                                                title="Odds of catching the Pokemon without RNG manip, specific to the nature.
+If required days aren’t specified, odds include solutions that work on other days."
+                                            >
+                                                <b>Natural catch odds</b>:{" "}
                                                 {parseFloat(
                                                     (
-                                                        r.seed_result
-                                                            .natural_catch_probability *
+                                                        r.seed_result.natural_catch_probability *
                                                         2500
-                                                    ).toFixed(2)
+                                                    ).toFixed(2),
                                                 ).toString()}
-                                                %
-                                                {` (num_offsets=${r.seed_result.num_offsets})`}
+                                                %{` (num_offsets=${r.seed_result.num_offsets})`}
                                             </div>
                                         ) : null}
                                     </div>

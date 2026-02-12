@@ -38,9 +38,7 @@ function StarRow({
                             className="starBtn"
                             role="radio"
                             aria-checked={n === value}
-                            aria-label={`${label}: ${n} star${
-                                n === 1 ? "" : "s"
-                            }`}
+                            aria-label={`${label}: ${n} star${n === 1 ? "" : "s"}`}
                             onClick={() => onChange(n)}
                             onMouseEnter={() => setHover(n)}
                         >

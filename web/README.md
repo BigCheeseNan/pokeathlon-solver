@@ -1,27 +1,67 @@
 # Pokeathlon Web UI
 
-This repo now includes a local web UI:
+This repo now includes a local web UI that runs fully in the browser using WASM solvers.
+
 - **Frontend**: React + Vite (TypeScript)
-- **Backend**: FastAPI (Python)
+- **WASM**: Emscripten builds of the native C solvers
+- **Backend (legacy)**: FastAPI app using the Python solver core
 
 ## Layout
 
-- `web/backend/` FastAPI app
 - `web/frontend/` Vite React app
-- `recipe_calc/solver_api.py` JSON-friendly solver entrypoints (backend calls this)
+- `web/frontend/public/wasm/` WASM solver outputs
+- `web/backend/` FastAPI app (legacy backend, optional)
 
-## Backend (FastAPI)
+## Build WASM Solvers (Docker)
 
+The WASM solvers are already built and included in the repo, but you can rebuild them after making changes to the C code.
 From the repo root:
 
 ```bash
-py -m pip install -r web/backend/requirements.txt
-py -m uvicorn web.backend.main:app --reload --port 8000
+docker pull emscripten/emsdk
+
+docker run --rm -v "${PWD}:/src" emscripten/emsdk \
+    emcc /src/packages/native/src/recipe/recipe_calculator.c \
+    -O3 -s MODULARIZE=1 -s EXPORT_ES6=1 -s ENVIRONMENT=web \
+    -s ALLOW_MEMORY_GROWTH=1 \
+    -s EXPORTED_FUNCTIONS="['_astar_minimal_recipe_c','_recipe_calc_set_relevant_pruning','_recipe_calc_set_verbose','_malloc','_free']" \
+    -s EXPORTED_RUNTIME_METHODS="['ccall']" \
+    -o /src/web/frontend/public/wasm/librecipe_calc.js
+
+docker run --rm -v "${PWD}:/src" emscripten/emsdk \
+    emcc /src/packages/native/src/seed/hgss_searcher.c \
+    /src/packages/native/src/seed/pid_tool.c \
+    -O3 -s MODULARIZE=1 -s EXPORT_ES6=1 -s ENVIRONMENT=web \
+    -s ALLOW_MEMORY_GROWTH=1 \
+    -s EXPORTED_FUNCTIONS="['_pokeathlonFindBestSeedForCriteria','_malloc','_free']" \
+    -s EXPORTED_RUNTIME_METHODS="['ccall']" \
+    -o /src/web/frontend/public/wasm/libhgss_seedlib.js
 ```
 
-Health check:
+## Build WASM Solvers (Local Emscripten)
 
-- http://localhost:8000/api/health
+If you have emsdk installed locally, activate it and use `emcc` directly.
+
+```bash
+# Example (adjust for your emsdk install location)
+emsdk activate latest
+source ./emsdk_env.sh
+
+emcc packages/native/src/recipe/recipe_calculator.c \
+    -O3 -s MODULARIZE=1 -s EXPORT_ES6=1 -s ENVIRONMENT=web \
+    -s ALLOW_MEMORY_GROWTH=1 \
+    -s EXPORTED_FUNCTIONS="['_astar_minimal_recipe_c','_recipe_calc_set_relevant_pruning','_recipe_calc_set_verbose','_malloc','_free']" \
+    -s EXPORTED_RUNTIME_METHODS="['ccall']" \
+    -o web/frontend/public/wasm/librecipe_calc.js
+
+emcc packages/native/src/seed/hgss_searcher.c \
+    packages/native/src/seed/pid_tool.c \
+    -O3 -s MODULARIZE=1 -s EXPORT_ES6=1 -s ENVIRONMENT=web \
+    -s ALLOW_MEMORY_GROWTH=1 \
+    -s EXPORTED_FUNCTIONS="['_pokeathlonFindBestSeedForCriteria','_malloc','_free']" \
+    -s EXPORTED_RUNTIME_METHODS="['ccall']" \
+    -o web/frontend/public/wasm/libhgss_seedlib.js
+```
 
 ## Frontend (Vite)
 
@@ -37,58 +77,25 @@ Open:
 
 - http://localhost:5173/
 
-### Quick Start (PyPI)
+## Backend (FastAPI)
 
-With backend and frontend packages already installed:
 From the repo root:
 
 ```bash
-.\start.ps1
+py -m pip install -r web/backend/requirements.txt
+py -m uvicorn web.backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Dev proxy
+### Notes
 
-The Vite dev server proxies `/api/*` to `http://localhost:8000` (see `web/frontend/vite.config.ts`).
+- Rebuild the WASM outputs when changing any C files under packages/native/src.
+- The solver mode is controlled by web/frontend/.env (VITE_SOLVER_MODE=local).
 
-## API
+## Solver Mode (Local vs Remote)
 
-`POST /api/solve`
+The frontend can run fully in-browser using WASM, or fall back to a remote API.
+Set `VITE_SOLVER_MODE` in web/frontend/.env:
 
-Mode `diffs`:
-
-```json
-{
-  "mode": "diffs",
-  "star_diffs": [0, -1, 3, 1, 1],
-  "compute_seed": true,
-  "top_n_solutions": null
-}
-```
-
-Mode `pokemon`:
-
-```json
-{
-  "mode": "pokemon",
-  "pokemon_stars": [5, 5, 4, 2, 1],
-  "pokemon_top_n": 10,
-  "compute_seed": true,
-  "top_n_solutions": null
-}
-```
-
-### Pokemon UI flow
-
-The React UI uses a 2-step flow:
-
-1) `POST /api/pokemon/candidates` to list the top-N candidate Pokemon (fast)
-2) When you click a Pokemon, it calls `POST /api/solve` in `diffs` mode using that Pokemon's `computed_diffs`
-
-`POST /api/pokemon/candidates`:
-
-```json
-{
-  "pokemon_stars": [5, 5, 4, 2, 1],
-  "pokemon_top_n": 10
-}
-```
+- `local`: always use WASM; throw if WASM fails to load or solve.
+- `remote`: always use the HTTP API at `/api/*`.
+- `auto`: try WASM first and fall back to `/api/*` if local solver fails.

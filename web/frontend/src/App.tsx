@@ -9,9 +9,7 @@ function App() {
     const [theme, setTheme] = useState<"light" | "dark">(() => {
         const stored = localStorage.getItem("theme");
         if (stored === "light" || stored === "dark") return stored;
-        return window.matchMedia("(prefers-color-scheme: light)").matches
-            ? "light"
-            : "dark";
+        return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
     });
 
     useEffect(() => {
@@ -21,9 +19,7 @@ function App() {
 
     const toggleTheme = () => {
         setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-    }; 
-
-    
+    };
 
     return (
         <div className="page">
@@ -48,18 +44,14 @@ function App() {
                     <div className="seg">
                         <button
                             type="button"
-                            className={
-                                mode === "pokemon" ? "segBtn active" : "segBtn"
-                            }
+                            className={mode === "pokemon" ? "segBtn active" : "segBtn"}
                             onClick={() => setMode("pokemon")}
                         >
                             Star Search
                         </button>
                         <button
                             type="button"
-                            className={
-                                mode === "diffs" ? "segBtn active" : "segBtn"
-                            }
+                            className={mode === "diffs" ? "segBtn active" : "segBtn"}
                             onClick={() => setMode("diffs")}
                         >
                             Pokemon Search
@@ -68,7 +60,12 @@ function App() {
                 </div>
             </div>
 
-            {mode === "pokemon" ? <StarSearchMode /> : <PokemonSearchMode />}
+            <div hidden={mode !== "pokemon"} className="page">
+                <StarSearchMode />
+            </div>
+            <div hidden={mode !== "diffs"} className="page">
+                <PokemonSearchMode />
+            </div>
         </div>
     );
 }

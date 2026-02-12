@@ -29,7 +29,6 @@ target_compile_options(recipe_calc PRIVATE
 # ===== HGSS Seed Search Library =====
 add_library(hgss_seedlib SHARED
     src/seed/hgss_searcher.c
-    src/seed/mt_tool.c
     src/seed/pid_tool.c
 )
 

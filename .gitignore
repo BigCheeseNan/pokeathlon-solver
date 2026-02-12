@@ -33,9 +33,5 @@ desktop.ini
 .ipynb_checkpoints/
 *.ipynb
 
-# Local configuration
-.env
-.env.local
-
 # Test outputs
 *.log

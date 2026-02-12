@@ -4,8 +4,19 @@ import type {
     PokemonCandidatesResponse,
     SolveRequest,
 } from "./types";
+import { localPostPokemonCandidates, localPostSolve } from "./localSolver";
+
+const solverMode = (import.meta.env.VITE_SOLVER_MODE ?? "remote") as "remote" | "local" | "auto";
 
 export async function postSolve(body: SolveRequest): Promise<DiffsResponse> {
+    if (solverMode !== "remote") {
+        try {
+            return await localPostSolve(body);
+        } catch (err) {
+            if (solverMode === "local") throw err;
+        }
+    }
+
     const resp = await fetch("/api/solve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -19,8 +30,16 @@ export async function postSolve(body: SolveRequest): Promise<DiffsResponse> {
 }
 
 export async function postPokemonCandidates(
-    body: PokemonCandidatesRequest
+    body: PokemonCandidatesRequest,
 ): Promise<PokemonCandidatesResponse> {
+    if (solverMode !== "remote") {
+        try {
+            return await localPostPokemonCandidates(body);
+        } catch (err) {
+            if (solverMode === "local") throw err;
+        }
+    }
+
     const resp = await fetch("/api/pokemon/candidates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -46,11 +46,7 @@ function PokemonPicker({
                         className="sprite"
                         src={`/sprites/${selectedPokemon.dex_id}.png`}
                         alt={selectedPokemon.name}
-                        onError={(e) => {
-                            (
-                                e.currentTarget as HTMLImageElement
-                            ).style.display = "none";
-                        }}
+                        onError={(e) => (e.currentTarget.style.display = "none")}
                     />
                     <div className="muted">
                         Base stats: {selectedPokemon.name} (#
@@ -58,9 +54,7 @@ function PokemonPicker({
                     </div>
                 </div>
             ) : (
-                <div className="muted">
-                    Pick a Pokemon to compute for.
-                </div>
+                <div className="muted">Pick a Pokemon to compute for.</div>
             )}
         </>
     );

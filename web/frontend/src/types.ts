@@ -14,7 +14,6 @@ export type Solution = {
     ingredients: number;
     daily_sum: number;
     solver_source: string;
-    solver_elapsed_s: number | null;
     nature: {
         name: string;
         plus: string;

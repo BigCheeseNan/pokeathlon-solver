@@ -14,23 +14,13 @@ export type StarFormValues = {
 type Props = {
     starLabels: string[];
     values: StarFormValues;
-    onChange: <K extends keyof StarFormValues>(
-        key: K,
-        value: StarFormValues[K]
-    ) => void;
+    onChange: <K extends keyof StarFormValues>(key: K, value: StarFormValues[K]) => void;
     isSearching: boolean;
     error: string | null;
     onSubmit: (e: FormEvent) => void;
 };
 
-function StarSearchForm({
-    starLabels,
-    values,
-    onChange,
-    isSearching,
-    error,
-    onSubmit,
-}: Props) {
+function StarSearchForm({ starLabels, values, onChange, isSearching, error, onSubmit }: Props) {
     return (
         <form className="panel" onSubmit={onSubmit}>
             <div className="starPicker">
@@ -42,62 +32,61 @@ function StarSearchForm({
                         onChange={(v) =>
                             onChange(
                                 "stars",
-                                values.stars.map((val, idx) =>
-                                    idx === i ? v : val
-                                )
+                                values.stars.map((val, idx) => (idx === i ? v : val)),
                             )
                         }
                     />
                 ))}
             </div>
-            <div className="row" title="The number of candidate Pokemon to consider, sorted by highest bonus points">
+            <div
+                className="row"
+                title="The number of candidate Pokemon to consider, sorted by highest bonus points"
+            >
                 <label className="label">Top N Pokemon</label>
                 <input
                     type="number"
                     min={1}
                     max={200}
                     value={values.pokemonTopN}
-                    onChange={(e) =>
-                        onChange("pokemonTopN", Number(e.target.value))
-                    }
+                    onChange={(e) => onChange("pokemonTopN", Number(e.target.value))}
                 />
             </div>
 
-            <div className="row" title="Whether to show the PID/seed for RNG manipulation (check natural catch odds in advanced info to see if needed)">
+            <div
+                className="row"
+                title="Whether to show the PID/seed for RNG manipulation (check natural catch odds in advanced info to see if needed)"
+            >
                 <label className="label">Compute PID/seed</label>
                 <input
                     type="checkbox"
                     checked={values.computeSeed}
-                    onChange={(e) =>
-                        onChange("computeSeed", e.target.checked)
-                    }
+                    onChange={(e) => onChange("computeSeed", e.target.checked)}
                 />
             </div>
-            <div className="row" title="Min ingredients minimizes apricorns used in the recipe at the cost of introducing more constraints on PID
-Better Seeds finds a recipe that minimizes the constraints on the PID (use this if you don't want to use RNG manip)">
+            <div
+                className="row"
+                title="Min ingredients minimizes apricorns used in the recipe at the cost of introducing more constraints on PID
+Better Seeds finds a recipe that minimizes the constraints on the PID (use this if you don't want to use RNG manip)"
+            >
                 <label className="label">Search mode</label>
                 <select
                     value={values.searchMode}
-                    onChange={(e) =>
-                        onChange(
-                            "searchMode",
-                            e.target.value as "min" | "max"
-                        )
-                    }
+                    onChange={(e) => onChange("searchMode", e.target.value as "min" | "max")}
                 >
                     <option value="min">Min ingredients</option>
                     <option value="max">Better seeds</option>
                 </select>
             </div>
-            <div className="row" title="Use this to force the PID to work on specific days (useful when you need different Pokemon on the same team)">
+            <div
+                className="row"
+                title="Use this to force the PID to work on specific days (useful when you need different Pokemon on the same team)"
+            >
                 <label className="label">Required days (1-31)</label>
                 <input
                     type="text"
                     placeholder="e.g., 1,5,10 (leave empty for all)"
                     value={values.allowedXValues}
-                    onChange={(e) =>
-                        onChange("allowedXValues", e.target.value)
-                    }
+                    onChange={(e) => onChange("allowedXValues", e.target.value)}
                 />
             </div>
             <div className="row">
@@ -105,12 +94,13 @@ Better Seeds finds a recipe that minimizes the constraints on the PID (use this 
                 <input
                     type="checkbox"
                     checked={values.showAdvanced}
-                    onChange={(e) =>
-                        onChange("showAdvanced", e.target.checked)
-                    }
+                    onChange={(e) => onChange("showAdvanced", e.target.checked)}
                 />
             </div>
-            <div className="row" title="The maximum number of solutions (natures) to return. Leave empty to return all">
+            <div
+                className="row"
+                title="The maximum number of solutions (natures) to return. Leave empty to return all"
+            >
                 <label className="label">Top N solutions</label>
                 <input
                     type="number"

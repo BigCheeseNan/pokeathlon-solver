@@ -33,13 +33,11 @@ function StarRowRange({
                     const isMin = n <= min;
                     const isBase = n <= base;
                     const isBonus = filled && n > base;
-                    const previewUp =
-                        hover !== null && clampedN > value && n <= clampedN;
+                    const previewUp = hover !== null && clampedN > value && n <= clampedN;
 
                     let cls = "starIcon";
                     if (isMin) cls += " min";
-                    else if (filled)
-                        cls += isBonus ? " filled bonus" : " filled";
+                    else if (filled) cls += isBonus ? " filled bonus" : " filled";
                     if (filled && previewUp) cls += " preview";
                     if (isBase) cls += " base";
 
@@ -48,9 +46,7 @@ function StarRowRange({
                             key={n}
                             type="button"
                             className="starBtn"
-                            aria-label={`${label}: ${clampedN} star${
-                                clampedN === 1 ? "" : "s"
-                            }`}
+                            aria-label={`${label}: ${clampedN} star${clampedN === 1 ? "" : "s"}`}
                             onClick={() => onChange(clampedN)}
                             onMouseEnter={() => {
                                 setHover(clampedN);

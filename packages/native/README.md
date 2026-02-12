@@ -6,7 +6,7 @@ High-performance C implementations for Pokeathlon solver computations.
 
 This package contains optimized C code for computationally intensive parts of the Pokeathlon solver:
 
-1. **recipe_calc** - A* recipe solver for finding minimal Aprijuice ingredient sequences
+1. **recipe_calc** - A\* recipe solver for finding minimal Aprijuice ingredient sequences
 2. **hgss_seedlib** - PID/seed search for Pokemon HeartGold/SoulSilver RNG
 
 These libraries are automatically loaded by `solver-core` when available, providing 10-50x speedup over pure Python implementations.
@@ -37,6 +37,57 @@ cmake --build build --config Release
 
 The build automatically copies the compiled libraries to `../solver_core/src/solver_core/bindings/`.
 
+### WASM Build (Emscripten + Docker)
+
+These commands build the WASM solvers consumed by the frontend and write outputs to
+`web/frontend/public/wasm/`.
+
+```bash
+docker pull emscripten/emsdk
+
+docker run --rm -v "${PWD}:/src" emscripten/emsdk \
+    emcc /src/packages/native/src/recipe/recipe_calculator.c \
+    -O3 -s MODULARIZE=1 -s EXPORT_ES6=1 -s ENVIRONMENT=web \
+    -s ALLOW_MEMORY_GROWTH=1 \
+    -s EXPORTED_FUNCTIONS="['_astar_minimal_recipe_c','_recipe_calc_set_relevant_pruning','_recipe_calc_set_verbose','_malloc','_free']" \
+    -s EXPORTED_RUNTIME_METHODS="['ccall']" \
+    -o /src/web/frontend/public/wasm/librecipe_calc.js
+
+docker run --rm -v "${PWD}:/src" emscripten/emsdk \
+    emcc /src/packages/native/src/seed/hgss_searcher.c \
+    /src/packages/native/src/seed/pid_tool.c \
+    -O3 -s MODULARIZE=1 -s EXPORT_ES6=1 -s ENVIRONMENT=web \
+    -s ALLOW_MEMORY_GROWTH=1 \
+    -s EXPORTED_FUNCTIONS="['_pokeathlonFindBestSeedForCriteria','_malloc','_free']" \
+    -s EXPORTED_RUNTIME_METHODS="['ccall']" \
+    -o /src/web/frontend/public/wasm/libhgss_seedlib.js
+```
+
+### WASM Build (Local Emscripten)
+
+If you have emsdk installed locally, activate it and use `emcc` directly.
+
+```bash
+# Example (adjust for your emsdk install location)
+emsdk activate latest
+source ./emsdk_env.sh
+
+emcc packages/native/src/recipe/recipe_calculator.c \
+    -O3 -s MODULARIZE=1 -s EXPORT_ES6=1 -s ENVIRONMENT=web \
+    -s ALLOW_MEMORY_GROWTH=1 \
+    -s EXPORTED_FUNCTIONS="['_astar_minimal_recipe_c','_recipe_calc_set_relevant_pruning','_recipe_calc_set_verbose','_malloc','_free']" \
+    -s EXPORTED_RUNTIME_METHODS="['ccall']" \
+    -o web/frontend/public/wasm/librecipe_calc.js
+
+emcc packages/native/src/seed/hgss_searcher.c \
+    packages/native/src/seed/pid_tool.c \
+    -O3 -s MODULARIZE=1 -s EXPORT_ES6=1 -s ENVIRONMENT=web \
+    -s ALLOW_MEMORY_GROWTH=1 \
+    -s EXPORTED_FUNCTIONS="['_pokeathlonFindBestSeedForCriteria','_malloc','_free']" \
+    -s EXPORTED_RUNTIME_METHODS="['ccall']" \
+    -o web/frontend/public/wasm/libhgss_seedlib.js
+```
+
 ### Build Outputs
 
 - **Windows**: `recipe_calc.dll`, `hgss_seedlib.dll`
@@ -47,11 +98,12 @@ The build automatically copies the compiled libraries to `../solver_core/src/sol
 
 ### recipe_calc
 
-**Purpose**: Fast A* search for minimal ingredient recipes to reach flavor targets.
+**Purpose**: Fast A\* search for minimal ingredient recipes to reach flavor targets.
 
 **Source**: `src/recipe/recipe_calculator.c`
 
 **API**:
+
 ```c
 int astar_minimal_recipe_c(
     int target[5],        // Target flavors (power, stamina, skill, jump, speed)
@@ -69,15 +121,17 @@ int astar_minimal_recipe_c(
 **Purpose**: Search for Pokemon PIDs and initial seeds that satisfy daily modifier requirements.
 
 **Sources**:
+
 - `src/seed/hgss_searcher.c` - Main search algorithm
 - `src/seed/mt_tool.c` - Mersenne Twister RNG
 - `src/seed/pid_tool.c` - PID generation utilities
 
 **API**:
+
 ```c
 int pokeathlonFindBestSeedForCriteria(
     int required_daily[5],      // Required daily bonuses (C order: speed,jump,skill,stamina,power)
-    uint32_t allowed_mods,      // Bitmask of allowed nature modifiers
+    uint32_t allowed_mod,       // Required nature
 	uint32_t allowed_x_mask,    // Bitmask of required days
     uint32_t* out_offset,       // Output: best offset pattern
     uint32_t* out_x_mask,       // Output: valid X days (bitmask)

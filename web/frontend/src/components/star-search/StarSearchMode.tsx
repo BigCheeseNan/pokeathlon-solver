@@ -18,7 +18,7 @@ const initialFormState: StarFormValues = {
 
 const formReducer = <K extends keyof StarFormValues>(
     state: StarFormValues,
-    action: { key: K; value: StarFormValues[K] }
+    action: { key: K; value: StarFormValues[K] },
 ): StarFormValues => ({
     ...state,
     [action.key]: action.value,
@@ -44,10 +44,7 @@ function StarSearchMode() {
         reset: resetResult,
     } = usePokemonSolver();
 
-    const starLabels = useMemo(
-        () => ["speed", "power", "skill", "stamina", "jump"],
-        []
-    );
+    const starLabels = useMemo(() => ["speed", "power", "skill", "stamina", "jump"], []);
 
     const allowedXValuesParsed = useMemo(
         () =>
@@ -55,13 +52,10 @@ function StarSearchMode() {
                 .split(",")
                 .map((s) => parseInt(s.trim(), 10))
                 .filter((n) => !isNaN(n) && n >= 1 && n <= 31),
-        [formValues.allowedXValues]
+        [formValues.allowedXValues],
     );
 
-    const displayedCandidates = useMemo(
-        () => candidates?.candidates ?? [],
-        [candidates]
-    );
+    const displayedCandidates = useMemo(() => candidates?.candidates ?? [], [candidates]);
 
     const error = searchError ?? solveError;
 
@@ -73,28 +67,31 @@ function StarSearchMode() {
         }
     }, []);
 
-    const onSubmit = useCallback(async (e: FormEvent) => {
-        e.preventDefault();
-        clearSearchError();
-        clearSolveError();
-        resetCandidates();
-        setSelectedPokemon(null);
-        resetResult();
-        await search({
-            stars: formValues.stars,
-            pokemonTopN: formValues.pokemonTopN,
-            searchMode: formValues.searchMode,
-        });
-    }, [
-        clearSearchError,
-        clearSolveError,
-        search,
-        formValues.stars,
-        formValues.pokemonTopN,
-        formValues.searchMode,
-        resetCandidates,
-        resetResult,
-    ]);
+    const onSubmit = useCallback(
+        async (e: FormEvent) => {
+            e.preventDefault();
+            clearSearchError();
+            clearSolveError();
+            resetCandidates();
+            setSelectedPokemon(null);
+            resetResult();
+            await search({
+                stars: formValues.stars,
+                pokemonTopN: formValues.pokemonTopN,
+                searchMode: formValues.searchMode,
+            });
+        },
+        [
+            clearSearchError,
+            clearSolveError,
+            search,
+            formValues.stars,
+            formValues.pokemonTopN,
+            formValues.searchMode,
+            resetCandidates,
+            resetResult,
+        ],
+    );
 
     const solvePokemon = useCallback(
         async (p: PokemonCandidate) => {
@@ -117,17 +114,14 @@ function StarSearchMode() {
             formValues.computeSeed,
             formValues.searchMode,
             solve,
-        ]
+        ],
     );
 
     const onFormChange = useCallback(
-        <K extends keyof StarFormValues>(
-            key: K,
-            value: StarFormValues[K]
-        ) => {
+        <K extends keyof StarFormValues>(key: K, value: StarFormValues[K]) => {
             dispatch({ key, value });
         },
-        []
+        [],
     );
 
     return (

@@ -13,22 +13,14 @@ function CandidateList({ candidates, selectedPokemon, onSelect }: Props) {
                 <button
                     key={p.id}
                     type="button"
-                    className={
-                        selectedPokemon?.id === p.id
-                            ? "candidate active"
-                            : "candidate"
-                    }
+                    className={selectedPokemon?.id === p.id ? "candidate active" : "candidate"}
                     onClick={() => onSelect(p)}
                 >
                     <img
                         className="sprite"
                         src={`/sprites/${p.dex_id}.png`}
                         alt={p.name}
-                        onError={(e) => {
-                            (
-                                e.currentTarget as HTMLImageElement
-                            ).style.display = "none";
-                        }}
+                        onError={(e) => (e.currentTarget.style.display = "none")}
                     />
                     <div className="candName">{p.name}</div>
                     <div className="candMeta">bonus points: {25 - p.total}</div>

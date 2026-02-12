@@ -8,19 +8,12 @@ type Props = {
     selectedPokemon: FullPokemon | null;
     desired: Record<StatKey, number>;
     setDesired: (
-        v:
-            | Record<StatKey, number>
-            | ((prev: Record<StatKey, number>) => Record<StatKey, number>)
+        v: Record<StatKey, number> | ((prev: Record<StatKey, number>) => Record<StatKey, number>),
     ) => void;
     diffsLabel: string | null;
 };
 
-function StarEditor({
-    selectedPokemon,
-    desired,
-    setDesired,
-    diffsLabel,
-}: Props) {
+function StarEditor({ selectedPokemon, desired, setDesired, diffsLabel }: Props) {
     if (!selectedPokemon) return null;
 
     return (

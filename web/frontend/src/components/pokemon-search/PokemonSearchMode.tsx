@@ -1,13 +1,7 @@
 import { type FormEvent, useCallback, useMemo, useReducer, useState } from "react";
-import type { CaseResult, DiffsResponse, SolveRequest, StatKey } from "../../types";
+import type { CaseResult, SolveRequest, StatKey } from "../../types";
 import { DIFFS_ORDER, STAT_ORDER } from "../../constants";
-import {
-    FULL_POKEMON,
-    baseStars,
-    clampInt,
-    dex3,
-    getTriplet,
-} from "../../utils/pokemon";
+import { FULL_POKEMON, baseStars, clampInt, dex3, getTriplet } from "../../utils/pokemon";
 import { postSolve } from "../../api";
 import { toErrorMessage } from "../../utils/errors";
 import PokemonPicker from "./PokemonPicker";
@@ -25,7 +19,7 @@ const initialFormState: SolverFormValues = {
 
 const formReducer = <K extends keyof SolverFormValues>(
     state: SolverFormValues,
-    action: { key: K; value: SolverFormValues[K] }
+    action: { key: K; value: SolverFormValues[K] },
 ): SolverFormValues => ({
     ...state,
     [action.key]: action.value,
@@ -46,10 +40,7 @@ function PokemonSearchMode() {
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState<CaseResult | null>(null);
 
-    const pokemonQuery = useMemo(
-        () => pokemonInput.trim().toLowerCase(),
-        [pokemonInput]
-    );
+    const pokemonQuery = useMemo(() => pokemonInput.trim().toLowerCase(), [pokemonInput]);
 
     const pokemonOptions = useMemo(() => {
         const q = pokemonQuery;
@@ -58,7 +49,7 @@ function PokemonSearchMode() {
         const isDexSearch = /^\d+$/.test(q);
         if (isDexSearch) {
             return FULL_POKEMON.filter((p) =>
-                String(Number(p.dex_id)).startsWith(String(Number(q)))
+                String(Number(p.dex_id)).startsWith(String(Number(q))),
             );
         }
 
@@ -66,7 +57,7 @@ function PokemonSearchMode() {
             p.name
                 .toLowerCase()
                 .split(/\s+/)
-                .some((word) => word.startsWith(q))
+                .some((word) => word.startsWith(q)),
         );
     }, [pokemonQuery]);
 
@@ -102,7 +93,7 @@ function PokemonSearchMode() {
                 .split(",")
                 .map((s) => parseInt(s.trim(), 10))
                 .filter((n) => !isNaN(n) && n >= 1 && n <= 31),
-        [formValues.allowedXValues]
+        [formValues.allowedXValues],
     );
 
     const diffsLabel = useMemo(() => {
@@ -121,44 +112,46 @@ function PokemonSearchMode() {
         }
     }, []);
 
-    const onSubmit = useCallback(async (e: FormEvent) => {
-        e.preventDefault();
-        setError(null);
-        setResult(null);
-        setLoading(true);
-        try {
-            if (!selectedPokemon || !computedDiffs) {
-                setError("Pick a Pokémon first.");
-                return;
+    const onSubmit = useCallback(
+        async (e: FormEvent) => {
+            e.preventDefault();
+            setError(null);
+            setResult(null);
+            setLoading(true);
+            try {
+                if (!selectedPokemon || !computedDiffs) {
+                    setError("Pick a Pokémon first.");
+                    return;
+                }
+                const body: SolveRequest = {
+                    mode: "diffs",
+                    star_diffs: DIFFS_ORDER.map((k) => computedDiffs[k]),
+                    compute_seed: formValues.computeSeed,
+                    search_mode: formValues.searchMode,
+                    allowed_x_values: allowedXValuesParsed.length > 0 ? allowedXValuesParsed : null,
+                };
+                const res = await postSolve(body);
+                setResult(res.case);
+            } catch (err) {
+                setError(toErrorMessage(err));
+            } finally {
+                setLoading(false);
             }
-            const body: SolveRequest = {
-                mode: "diffs",
-                star_diffs: DIFFS_ORDER.map((k) => computedDiffs[k]),
-                compute_seed: formValues.computeSeed,
-                search_mode: formValues.searchMode,
-                allowed_x_values:
-                    allowedXValuesParsed.length > 0 ? allowedXValuesParsed : null,
-            };
-            const res = (await postSolve(body)) as DiffsResponse;
-            setResult(res.case);
-        } catch (err) {
-            setError(toErrorMessage(err));
-        } finally {
-            setLoading(false);
-        }
-    }, [
-        allowedXValuesParsed,
-        computedDiffs,
-        formValues.computeSeed,
-        formValues.searchMode,
-        selectedPokemon,
-    ]);
+        },
+        [
+            allowedXValuesParsed,
+            computedDiffs,
+            formValues.computeSeed,
+            formValues.searchMode,
+            selectedPokemon,
+        ],
+    );
 
     const onFormChange = useCallback(
         <K extends keyof SolverFormValues>(key: K, value: SolverFormValues[K]) => {
             dispatch({ key, value });
         },
-        []
+        [],
     );
 
     const handlePokemonInputChange = useCallback(
@@ -173,14 +166,11 @@ function PokemonSearchMode() {
 
             const digits = vv.match(/^\d+$/)?.[0];
             const byDex = digits
-                ? FULL_POKEMON.find(
-                      (p) =>
-                          String(Number(p.dex_id)) === String(Number(digits))
-                  )
+                ? FULL_POKEMON.find((p) => String(Number(p.dex_id)) === String(Number(digits)))
                 : null;
             const byName = FULL_POKEMON.find((p) => p.name.toLowerCase() === vv);
             const byLabel = FULL_POKEMON.find(
-                (p) => `${p.name} (#${dex3(p.dex_id)})`.toLowerCase() === vv
+                (p) => `${p.name} (#${dex3(p.dex_id)})`.toLowerCase() === vv,
             );
             const hit = byLabel ?? byName ?? byDex;
             if (hit) {
@@ -188,7 +178,7 @@ function PokemonSearchMode() {
                 setDesired(baseStars(hit));
             }
         },
-        [setDesired, setPokemonId, setPokemonInput]
+        [setDesired, setPokemonId, setPokemonInput],
     );
 
     return (

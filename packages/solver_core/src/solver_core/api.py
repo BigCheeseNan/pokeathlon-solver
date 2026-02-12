@@ -236,7 +236,7 @@ def solve_from_star_diffs(
 
                 seed_result = find_best_seed_for_criteria(
                     sol.required_daily,
-                    allowed_mod_mask=(1 << NATURE_TO_INDEX[sol.nature]),
+                    allowed_mod=NATURE_TO_INDEX[sol.nature],
                     allowed_x_values=opts.allowed_x_values,
                     quiet=True,
                 )
