@@ -1,10 +1,17 @@
-from solver_core.constants import intup, PokeathlonStats, NATURES, ODD_INDEX, FEAS_MOD_TABLE, NATURE_TO_INDEX
+from solver_core.constants import (
+    intup,
+    PokeathlonStats,
+    NATURES,
+    FEAS_MOD_TABLE,
+    ODD_INDEX,
+)
 
 
 def reorder_speed_to_stat_flavor(v: intup) -> intup:
     """Reorder (speed,power,skill,stamina,jump) -> (power,stamina,skill,jump,speed)."""
     speed, power, skill, stamina, jump = v
     return (power, stamina, skill, jump, speed)
+
 
 def reorder_stat_flavor_to_speed(v: intup) -> intup:
     """Reorder (power,stamina,skill,jump,speed) -> (speed,power,skill,stamina,jump)."""
@@ -65,13 +72,13 @@ NATURE_TO_INDEX: dict[tuple[str, int, int, bool], int] = {
 }
 
 
-def weakest_penalty(flavs, primary, secondary, mildness=0) -> int:
+def weakest_penalty(flavs, primary, secondary, mildness=0, delta=0) -> int:
     """The attribute corresponding to the weakest flavor is reduced by an amount depending on the mildness of the Aprijuice:
     100%, less 10% per 25 mildness (ignoring remainders) of the sum of the two strongest flavors, rounded down, if the mildness is less than 200
     20% of the sum of the two strongest flavors, rounded down, if the mildness is 200-254
     10% of the sum of the two strongest flavors, rounded down, if the mildness is 255
     """
-    sum_strongest = flavs[primary] + flavs[secondary]
+    sum_strongest = flavs[primary] + flavs[secondary] + delta
     if mildness < 200:
         decrease = (sum_strongest * (100 - (mildness // 25) * 10)) // 100
     elif mildness < 255:
@@ -93,7 +100,10 @@ def clamp_daily_requirement(x: int) -> int | None:
         return None
     return req
 
-def is_feasible(nature: tuple[str, int, int, bool], power_mod: int, stamina_mod: int) -> bool:
+
+def is_feasible(
+    nature: tuple[str, int, int, bool], power_mod: int, stamina_mod: int
+) -> bool:
     """Check if a given nature, power, stamina mod are achievable.
 
     Inputs:

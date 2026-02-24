@@ -26,7 +26,7 @@ def is_odd_in_range(v: int, lo: int, hi: int) -> bool:
 
 def validate_solution(stars: intup, sol: Solution) -> list[str]:
     """Validate a solution against all constraints.
-    
+
     Returns a list of error messages (empty if valid).
     """
     errors: list[str] = []
@@ -142,6 +142,7 @@ def generate_required_permutation_suite() -> list[intup]:
 
     return sorted(cases)
 
+
 def generate_edge_cases() -> list[intup]:
     edge_case = ((3, 1, 1, -1), 1)
     cases: set[intup] = set()
@@ -149,8 +150,9 @@ def generate_edge_cases() -> list[intup]:
     base, k = edge_case
     for extras in product(D, repeat=k):
         cases |= _all_unique_permutations(base + extras)
-    
+
     return sorted(cases)
+
 
 # Pytest test classes
 class TestSolutionValidation:
@@ -161,21 +163,25 @@ class TestSolutionValidation:
         for mode in ["min", "max"]:
             for stars in generate_exhaustive(range(-1, 3)):
                 results = find_all_solutions(stars, mode=mode)
-                
+
                 for sol in results:
                     errors = validate_solution(stars, sol)
-                    assert not errors, f"Validation failed for {stars} (mode={mode}): {errors}"
+                    assert (
+                        not errors
+                    ), f"Validation failed for {stars} (mode={mode}): {errors}"
 
     def test_required_permutation_suite(self):
         """Test required permutation suite for edge cases."""
         for mode in ["min", "max"]:
             for stars in generate_required_permutation_suite():
                 results = find_all_solutions(stars, mode=mode)
-                
+
                 assert len(results) > 0, f"No solutions found for {stars} (mode={mode})"
                 for sol in results:
                     errors = validate_solution(stars, sol)
-                    assert not errors, f"Validation failed for {stars} (mode={mode}): {errors}"
+                    assert (
+                        not errors
+                    ), f"Validation failed for {stars} (mode={mode}): {errors}"
 
     def test_special_edge_cases(self):
         """Test required permutation suite for special edge case."""
@@ -183,26 +189,30 @@ class TestSolutionValidation:
         for mode in ["min", "max"]:
             for stars in generate_edge_cases():
                 results = find_all_solutions(stars, mode=mode)
-                
+
                 if mode == "max":
-                    assert len(results) > 0, f"No solutions found for {stars} (mode={mode})"
+                    assert (
+                        len(results) > 0
+                    ), f"No solutions found for {stars} (mode={mode})"
                 elif mode == "min" and len(results) > 0:
                     count += 1
-                    
+
                 for sol in results:
                     errors = validate_solution(stars, sol)
-                    assert not errors, f"Validation failed for {stars} (mode={mode}): {errors}"
-                
+                    assert (
+                        not errors
+                    ), f"Validation failed for {stars} (mode={mode}): {errors}"
+
         assert count > 0, f"Expected 30 solutions in min mode, got {count}"
 
     def test_all_zeros(self):
         """Test the trivial case of all zero stars."""
         stars = (0, 0, 0, 0, 0)
-        
+
         for mode in ["min", "max"]:
             results = find_all_solutions(stars, mode=mode)
             assert len(results) > 0, f"Expected solutions for all zeros (mode={mode})"
-            
+
             for sol in results:
                 errors = validate_solution(stars, sol)
                 assert not errors, f"Validation failed: {errors}"
@@ -216,16 +226,17 @@ class TestSolutionValidation:
             (-1, -1, -3, 4, -1),
             (-1, -1, -3, -1, 4),
         ]
-        
+
         for stars in test_cases:
             for mode in ["min", "max"]:
                 results = find_all_solutions(stars, mode=mode)
-                
+
                 assert len(results) > 0, f"Expected solutions for {stars} (mode={mode})"
                 for sol in results:
                     errors = validate_solution(stars, sol)
-                    assert not errors, f"Validation failed for {stars} (mode={mode}): {errors}"
-
+                    assert (
+                        not errors
+                    ), f"Validation failed for {stars} (mode={mode}): {errors}"
 
     def test_mixed_positive_negative(self):
         """Test mixed positive and negative star requirements."""
@@ -235,15 +246,17 @@ class TestSolutionValidation:
             (4, 1, -1, -2, -3),
             (3, 3, -2, -2, -2),
         ]
-        
+
         for stars in test_cases:
             for mode in ["min", "max"]:
                 results = find_all_solutions(stars, mode=mode)
-                
+
                 assert len(results) > 0, f"Expected solutions for {stars} (mode={mode})"
                 for sol in results:
                     errors = validate_solution(stars, sol)
-                    assert not errors, f"Validation failed for {stars} (mode={mode}): {errors}"
+                    assert (
+                        not errors
+                    ), f"Validation failed for {stars} (mode={mode}): {errors}"
 
     def test_all_negative(self):
         """Test all negative star requirements."""
@@ -253,15 +266,17 @@ class TestSolutionValidation:
             (-3, -3, -3, -3, -3),
             (-4, -4, -4, -4, -4),
         ]
-        
+
         for stars in test_cases:
             for mode in ["min", "max"]:
                 results = find_all_solutions(stars, mode=mode)
                 assert len(results) > 0, f"Expected solutions for {stars} (mode={mode})"
-                
+
                 for sol in results:
                     errors = validate_solution(stars, sol)
-                    assert not errors, f"Validation failed for {stars} (mode={mode}): {errors}"
+                    assert (
+                        not errors
+                    ), f"Validation failed for {stars} (mode={mode}): {errors}"
 
 
 class TestConstraintSatisfaction:
@@ -270,31 +285,35 @@ class TestConstraintSatisfaction:
     def test_flavor_caps_always_respected(self):
         """Verify flavor caps are never violated."""
         test_cases = generate_exhaustive(range(-1, 3))
-        
+
         for stars in test_cases[:100]:  # Sample for performance
             for mode in ["min", "max"]:
                 results = find_all_solutions(stars, mode=mode)
-                
+
                 for sol in results:
-                    assert all(0 <= f <= 63 for f in sol.flavors), \
-                        f"Flavor cap violated for {stars}: {sol.flavors}"
-                    assert sum(sol.flavors) <= 100, \
-                        f"Total flavor cap violated for {stars}: sum={sum(sol.flavors)}"
+                    assert all(
+                        0 <= f <= 63 for f in sol.flavors
+                    ), f"Flavor cap violated for {stars}: {sol.flavors}"
+                    assert (
+                        sum(sol.flavors) <= 100
+                    ), f"Total flavor cap violated for {stars}: sum={sum(sol.flavors)}"
 
     def test_daily_modifiers_always_valid(self):
         """Verify daily modifiers are always odd and in range."""
         test_cases = generate_exhaustive(range(-1, 3))
-        
+
         for stars in test_cases[:100]:  # Sample for performance
             for mode in ["min", "max"]:
                 results = find_all_solutions(stars, mode=mode)
-                
+
                 for sol in results:
                     for daily in sol.required_daily:
-                        assert daily % 2 != 0, \
-                            f"Daily modifier not odd for {stars}: {daily}"
-                        assert -9 <= daily <= 9, \
-                            f"Daily modifier out of range for {stars}: {daily}"
+                        assert (
+                            daily % 2 != 0
+                        ), f"Daily modifier not odd for {stars}: {daily}"
+                        assert (
+                            -9 <= daily <= 9
+                        ), f"Daily modifier out of range for {stars}: {daily}"
 
     def test_final_modifiers_meet_thresholds(self):
         """Verify final modifiers always meet star thresholds."""
@@ -304,27 +323,26 @@ class TestConstraintSatisfaction:
             (1, 1, 1, -1, -1),
             (4, 2, -1, -2, -2),
         ]
-        
+
         for stars in test_cases:
             for mode in ["min", "max"]:
                 results = find_all_solutions(stars, mode=mode)
-                
+
                 assert len(results) > 0, f"No solutions found for {stars} (mode={mode})"
                 for sol in results:
                     mins = [star_to_min_modifier(s) for s in stars]
                     final_mods = [
                         r + n + d
                         for r, n, d in zip(
-                            sol.recipe_effect,
-                            sol.nature_effect,
-                            sol.required_daily
+                            sol.recipe_effect, sol.nature_effect, sol.required_daily
                         )
                     ]
-                    
+
                     for i, (fm, mn) in enumerate(zip(final_mods, mins)):
-                        assert fm >= mn, \
-                            f"Final modifier below threshold for {stars} at {STAT_FLAVOR[i]}: " \
+                        assert fm >= mn, (
+                            f"Final modifier below threshold for {stars} at {STAT_FLAVOR[i]}: "
                             f"{fm} < {mn}"
+                        )
 
 
 class TestModeComparison:
@@ -337,10 +355,10 @@ class TestModeComparison:
             (1, 1, 1, 0, 0),
             (3, 2, -2, 0, 0),
         ]
-        
+
         for stars in test_cases:
             results = find_all_solutions(stars, mode="min")
-            
+
             assert len(results) > 0, f"Expected solutions for {stars} (mode=min)"
             for sol in results:
                 errors = validate_solution(stars, sol)
@@ -353,10 +371,10 @@ class TestModeComparison:
             (1, 1, 1, 0, 0),
             (3, 2, -1, 0, 0),
         ]
-        
+
         for stars in test_cases:
             results = find_all_solutions(stars, mode="max")
-            
+
             assert len(results) > 0, f"Expected solutions for {stars} (mode=max)"
             for sol in results:
                 errors = validate_solution(stars, sol)
@@ -369,12 +387,13 @@ class TestModeComparison:
             (3, 2, 1, 0, -4),
             (1, 1, 1, -1, 0),
         ]
-        
+
         for stars in test_cases:
             for mode in ["min", "max"]:
                 results = find_all_solutions(stars, mode=mode)
                 assert len(results) > 0, f"Expected solutions for {stars} (mode={mode})"
                 for sol in results:
                     errors = validate_solution(stars, sol)
-                    assert not errors, \
-                        f"Mode {mode} validation failed for {stars}: {errors}"
+                    assert (
+                        not errors
+                    ), f"Mode {mode} validation failed for {stars}: {errors}"

@@ -13,6 +13,7 @@ import ctypes
 from pathlib import Path
 from typing import Callable, Optional
 from solver_core.constants import SeedSearchResult, intup
+import time
 
 LIB_NAME = "libhgss_seedlib"
 
@@ -71,7 +72,7 @@ class HGSSSeedLib:
 
     def __init__(self, path: Path):
         """Initialize library wrapper.
-        
+
         Args:
             path: Path to the shared library file
         """
@@ -121,17 +122,17 @@ def find_best_seed_for_criteria(
     """Find best seed/PID for given Pokéathlon stat criteria.
 
     Input order: STAT_FLAVOR = (power, stamina, skill, jump, speed)
-    
+
     Args:
         required_daily_stat_flavor: Minimum daily bonuses needed (STAT_FLAVOR order)
         allowed_mod: Required nature
         allowed_x_values: Optional list of allowed days (1-31). If None, all days allowed
         quiet: Suppress C library output
         lib_path: Custom library path (default searches standard locations)
-        
+
     Returns:
         SeedSearchResult with offset, valid days, streak info, PID, and seed
-        
+
     Raises:
         ValueError: If no valid offsets found or seed search failed
         RuntimeError: If unexpected C library error occurred
@@ -139,13 +140,13 @@ def find_best_seed_for_criteria(
     # Convert to C order: (speed, jump, skill, stamina, power)
     power, stamina, skill, jump, speed = required_daily_stat_flavor
     target_bonuses = (speed, jump, skill, stamina, power)
-    
+
     # Convert allowed_x_values list to bitmask
     allowed_x_mask = 0
     if allowed_x_values is not None:
         for x in allowed_x_values:
             if 1 <= x <= 31:
-                allowed_x_mask |= (1 << x)
+                allowed_x_mask |= 1 << x
 
     lib = _get_lib(lib_path)
 
@@ -174,6 +175,7 @@ def find_best_seed_for_criteria(
     )
 
     if rc == 1:
+        print(required_daily_stat_flavor, allowed_mod, allowed_x_values)
         raise ValueError("No valid 5-digit offsets for this criteria")
     if rc == 2:
         raise ValueError("Could not find a seed for the best offset")
@@ -190,12 +192,41 @@ def find_best_seed_for_criteria(
         seed=int(out_seed.value),
     )
 
+
 if __name__ == "__main__":
     # Input order: (power, stamina, skill, jump, speed)
-    result = find_best_seed_for_criteria(
-        required_daily_stat_flavor=(5, -9, 9, -9, -7),
-        allowed_mod=1 << 3 | 1 << 4,  # Only mod 25 natures 3 and 4
-        quiet=False,
-    )
-    print("Result:", result)
-    print(f"Valid days: {result.x_values}")
+    start = time.time()
+    results: list[SeedSearchResult] = []
+    targets = [
+        (0, (3, -9, -9, 9, 7)),
+        (2, (-1, -9, -9, 7, 5)),
+        (3, (-5, -9, -9, 5, 9)),
+        (6, (-9, 5, -9, 5, 9)),
+        (7, (-9, -1, -9, 7, 5)),
+        (8, (-9, -5, -9, 5, 9)),
+        (10, (3, -9, -9, 7, 9)),
+        (11, (-9, 3, -9, 7, 9)),
+        (12, (-9, 7, -3, 7, -1)),
+        (14, (-9, -9, 9, 7, 5)),
+        (15, (5, -9, -5, 5, 9)),
+        (16, (-9, 5, -5, 5, 9)),
+        (17, (-9, -9, 9, 3, 9)),
+        (18, (-3, -9, -1, 9, 9)),
+        (19, (-9, -5, 5, 5, 9)),
+        (22, (-9, -9, -1, 7, 5)),
+        (23, (-9, -9, -5, 5, 9)),
+        (24, (-9, -3, -3, 7, 9)),
+    ]
+    for nature, daily in targets:
+        result = find_best_seed_for_criteria(
+            required_daily_stat_flavor=daily,
+            allowed_mod=nature,
+            quiet=True,
+        )
+        results.append(result)
+    end = time.time()
+    for i, res in enumerate(results):
+        print(
+            f"Nature {i}: Offset={res.offset}, Valid Days={res.x_values}, Streak={res.streak}, PID={res.pid:08X}, Seed={res.seed:08X}"
+        )
+    print(f"Total execution time: {end - start:.3f} seconds")

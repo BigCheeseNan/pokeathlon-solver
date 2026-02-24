@@ -14,16 +14,14 @@ export function createRecipeBindings(module: WasmModule): RecipeWasmExports {
 
     return {
         astarMinimalRecipe: (target, opts) => {
-            if (target.length !== 5) {
-                throw new Error("target must have length 5");
-            }
+            if (target.length !== 5) throw new Error("target must have length 5");
 
             const maxSteps = 128;
             const targetPtr = module._malloc(5 * 4);
             const stepsPtr = module._malloc(maxSteps * 4);
             try {
                 const targetInts = target.map((v) => Math.trunc(v));
-                for (let i = 0; i < 5; i += 1) {
+                for (let i = 0; i < 5; i++) {
                     writeI32(targetPtr + i * 4, targetInts[i]);
                 }
 
@@ -59,11 +57,10 @@ export function createRecipeBindings(module: WasmModule): RecipeWasmExports {
                     );
                 }
 
-                const seq: string[] = [];
-                for (let i = 0; i < n; i += 1) {
+                const seq = Array.from({ length: n }, (_, i) => {
                     const ingIdx = readI32(stepsPtr + i * 4);
-                    seq.push(INGREDIENTS[ingIdx] ?? "unknown");
-                }
+                    return INGREDIENTS[ingIdx] ?? "unknown";
+                });
                 return { recipe: seq, err: 0 };
             } finally {
                 module._free(targetPtr);

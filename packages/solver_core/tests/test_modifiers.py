@@ -118,14 +118,14 @@ class TestApplyRecipeEffect:
     def test_with_mildness(self):
         """Test that mildness affects the weakest penalty."""
         flavors = (40, 20, 0, 0, 0)
-        
+
         # Mildness = 0: penalty = 100% of sum = 60
         effect_0 = apply_recipe_effect(flavors, mildness=0)
         # Mildness = 100: penalty = 60% of sum = (60 * 60) // 100 = 36
         effect_100 = apply_recipe_effect(flavors, mildness=100)
         # Mildness = 255: penalty = 10% of sum = (60 * 10) // 100 = 6
         effect_255 = apply_recipe_effect(flavors, mildness=255)
-        
+
         # Weakest penalty should decrease with mildness
         assert abs(effect_0[4]) > abs(effect_100[4]) > abs(effect_255[4])
 
@@ -133,7 +133,7 @@ class TestApplyRecipeEffect:
         """Test a realistic recipe configuration."""
         flavors = (35, 20, 0, 1, 1)
         effect = apply_recipe_effect(flavors)
-        
+
         # Strongest: power (35) -> floor(1.5 * 35) + 10 = 52 + 10 = 62
         assert effect[0] == 62
         # Second: stamina (20) -> floor(1.5 * 20) = 30
@@ -149,7 +149,7 @@ class TestRequiredDailyModifiers:
         """Test when base modifiers already meet star requirements."""
         desired_stars = (1, 1, 1, 1, 1)  # All need >= 15
         base_modifiers = [20, 20, 20, 20, 20]  # All already above 15
-        
+
         result = required_daily_modifiers(desired_stars, base_modifiers)
         # Need >= (15 - 20) = -5 for each, clamped to odd: -5
         assert result == (-5, -5, -5, -5, -5)
@@ -158,7 +158,7 @@ class TestRequiredDailyModifiers:
         """Test when positive daily modifiers are needed."""
         desired_stars = (2, 2, 2, 2, 2)  # All need >= 40
         base_modifiers = [35, 35, 35, 35, 35]  # All need +5
-        
+
         result = required_daily_modifiers(desired_stars, base_modifiers)
         # Need >= 5, so clamp to odd value >= 5, which is 5
         assert result == (5, 5, 5, 5, 5)
@@ -167,10 +167,10 @@ class TestRequiredDailyModifiers:
         """Test that even requirements are rounded up to next odd."""
         desired_stars = (1, 1, 1, 1, 1)  # All need >= 15
         base_modifiers = [10, 10, 10, 10, 10]  # All need +5 (already odd)
-        
+
         result = required_daily_modifiers(desired_stars, base_modifiers)
         assert result == (5, 5, 5, 5, 5)
-        
+
         # Now test with even requirement
         base_modifiers = [11, 11, 11, 11, 11]  # All need +4 -> rounds to +5
         result = required_daily_modifiers(desired_stars, base_modifiers)
@@ -180,7 +180,7 @@ class TestRequiredDailyModifiers:
         """Test that impossible requirements (>9) return None."""
         desired_stars = (4, 1, 1, 1, 1)  # First needs >= 120
         base_modifiers = [100, 20, 20, 20, 20]  # First needs +20 (> 9)
-        
+
         result = required_daily_modifiers(desired_stars, base_modifiers)
         assert result is None
 
@@ -188,11 +188,11 @@ class TestRequiredDailyModifiers:
         """Test when negative daily modifiers are needed."""
         desired_stars = (-2, -2, -2, -2, -2)  # All need >= -79
         base_modifiers = [-100, -100, -100, -100, -100]  # All need +21
-        
+
         result = required_daily_modifiers(desired_stars, base_modifiers)
         # Need >= 21, but that's > 9, so impossible
         assert result is None
-        
+
         # Test achievable negative case
         desired_stars = (-3, -3, -3, -3, -3)  # All need >= -119
         base_modifiers = [-120, -120, -120, -100, -100]  # Already sufficient
@@ -203,7 +203,7 @@ class TestRequiredDailyModifiers:
         """Test with mixed positive and negative requirements."""
         desired_stars = (3, 1, 0, -1, -2)
         base_modifiers = [75, 10, -10, -35, -75]
-        
+
         result = required_daily_modifiers(desired_stars, base_modifiers)
         # 3: needs >= 80, has 75 -> need 5
         # 1: needs >= 15, has 10 -> need 5

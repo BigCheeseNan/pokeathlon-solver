@@ -1,4 +1,4 @@
-import type { IntTuple, Nature, Result, SeedSearchResult, FlavorKey } from "./constants";
+import type { Nature, Result, SeedSearchResult, FlavorKey } from "./constants";
 import {
     INGREDIENTS,
     NATURES,
@@ -82,12 +82,12 @@ export type PokemonCandidatesResponseDict = {
 };
 
 export type RecipeCompute = (
-    flavors: IntTuple,
+    flavors: number[],
     opts?: { quiet?: boolean; prune_relevant?: boolean },
 ) => Promise<{ recipe: string[] | null; source: string }>;
 
 export type SeedCompute = (
-    requiredDaily: IntTuple,
+    requiredDaily: number[],
     allowedMod: number,
     allowedXValues?: number[] | null,
     opts?: { quiet?: boolean },
@@ -134,13 +134,11 @@ function natureToJson(nat: Nature) {
 }
 
 export function listPokemonCandidates(
-    desiredStarsSpeedOrder: IntTuple,
+    desiredStarsSpeedOrder: number[],
     opts?: { top_n?: number },
 ): PokemonCandidatesResponseDict {
-    for (const s of desiredStarsSpeedOrder) {
-        if (s < 1 || s > 5) {
-            throw new Error("desired_stars_speed_order values must be in [1..5]");
-        }
+    if (desiredStarsSpeedOrder.some((s) => s < 1 || s > 5)) {
+        throw new Error("desired_stars_speed_order values must be in [1..5]");
     }
 
     const candidates = findLowestTotalPokemon(desiredStarsSpeedOrder, undefined, opts?.top_n ?? 10);
@@ -162,12 +160,10 @@ export function listPokemonCandidates(
 }
 
 export async function solveFromStarDiffs(
-    desiredStarDiffs: IntTuple,
+    desiredStarDiffs: number[],
     options?: SolveOptions,
     deps?: SolverDeps,
 ): Promise<CaseResultDict> {
-    let recipeCount = 0;
-    let seedCount = 0;
     const opts: Required<SolveOptions> = {
         compute_seed: options?.compute_seed ?? true,
         top_n_solutions: options?.top_n_solutions ?? null,
@@ -203,10 +199,9 @@ export async function solveFromStarDiffs(
             quiet: true,
             prune_relevant: true,
         });
-        recipeCount += 1;
         if (!recipeRes.recipe) {
             console.error("No recipe produced");
-            skippedRecipes += 1;
+            skippedRecipes++;
             continue;
         }
 
@@ -221,11 +216,10 @@ export async function solveFromStarDiffs(
             seedResult = await deps.seed(sol.required_daily, natIndex, opts.allowed_x_values, {
                 quiet: true,
             });
-            seedCount += 1;
             if (!seedResult || seedResult.count === 0) {
                 console.error("No valid seed found");
                 console.error("Solution:", sol);
-                invalidSeeds += 1;
+                invalidSeeds++;
                 continue;
             }
         }
@@ -314,7 +308,7 @@ export async function solveFromStarDiffs(
 }
 
 export async function solveFromPokemonStars(
-    desiredStarsSpeedOrder: IntTuple,
+    desiredStarsSpeedOrder: number[],
     options?: SolveOptions,
     deps?: SolverDeps,
 ): Promise<{
@@ -323,10 +317,8 @@ export async function solveFromPokemonStars(
     candidates: PokemonCandidateDict[];
     cases: CaseResultDict[];
 }> {
-    for (const s of desiredStarsSpeedOrder) {
-        if (s < 1 || s > 5) {
-            throw new Error("desired_stars_speed_order values must be in [1..5]");
-        }
+    if (desiredStarsSpeedOrder.some((s) => s < 1 || s > 5)) {
+        throw new Error("desired_stars_speed_order values must be in [1..5]");
     }
 
     const candidates = findLowestTotalPokemon(

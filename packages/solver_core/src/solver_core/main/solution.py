@@ -18,6 +18,7 @@ This version uses a greedy/heuristic approach for flavors, but now enumerates al
 from solver_core.constants import (
     intup,
     NATURES,
+    NATURE_TO_INDEX,
     Solution,
     PAIRS_BY_PRIORITY_PREFER_POWER,
     PAIRS_BY_PRIORITY_PREFER_STAMINA,
@@ -68,7 +69,9 @@ def _solve_for_nature(
     flavors, mildness = res
 
     assert sum(flavors) <= 100, f"Flavor sum exceeds 100: {flavors}"
-    assert all(f <= 63 for f in flavors), f"Flavor exceeds per-flavor cap 63: {flavors}, mode={mode}"
+    assert all(
+        f <= 63 for f in flavors
+    ), f"Flavor exceeds per-flavor cap 63: {flavors}, mode={mode}"
 
     modifiers = apply_recipe_effect(flavors, mildness)
     modifiers[nat[1]] += 10 if nat[3] else 35
@@ -122,3 +125,12 @@ def find_all_solutions(desired_stars: intup, mode: str = "min") -> list[Solution
         if sol is not None:
             results.append(sol)
     return results
+
+
+if __name__ == "__main__":
+    # Example usage:
+    target_stars = (0, 0, 0, 2, 1)
+    solutions = find_all_solutions(target_stars)
+    for sol in solutions:
+        print(sol.nature, sol.flavors, sol.mildness)
+        print((NATURE_TO_INDEX[sol.nature], sol.required_daily))

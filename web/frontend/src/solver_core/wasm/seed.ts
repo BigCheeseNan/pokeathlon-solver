@@ -29,19 +29,14 @@ export function createSeedBindings(module: WasmModule): SeedWasmExports {
 
     return {
         findBestSeedForCriteria: (requiredDaily, allowedModMask, allowedXValues, opts) => {
-            if (requiredDaily.length !== 5) {
-                throw new Error("required_daily must have length 5");
-            }
+            if (requiredDaily.length !== 5) throw new Error("required_daily must have length 5");
 
             const [power, stamina, skill, jump, speed] = requiredDaily;
             const targetBonuses = [speed, jump, skill, stamina, power];
 
-            let allowedXMask = 0;
-            if (allowedXValues) {
-                for (const x of allowedXValues) {
-                    if (x >= 1 && x <= 31) allowedXMask |= 1 << x;
-                }
-            }
+            const allowedXMask = (allowedXValues || [])
+                .filter((x) => x >= 1 && x <= 31)
+                .reduce((mask, x) => mask | (1 << x), 0);
 
             const bonusesPtr = module._malloc(5 * 4);
             const outOffsetPtr = module._malloc(4);
@@ -53,9 +48,7 @@ export function createSeedBindings(module: WasmModule): SeedWasmExports {
             const outSeedPtr = module._malloc(4);
 
             try {
-                for (let i = 0; i < 5; i += 1) {
-                    writeI32(bonusesPtr + i * 4, targetBonuses[i]);
-                }
+                targetBonuses.forEach((bonus, i) => writeI32(bonusesPtr + i * 4, bonus));
 
                 const rc = module.ccall(
                     "pokeathlonFindBestSeedForCriteria",

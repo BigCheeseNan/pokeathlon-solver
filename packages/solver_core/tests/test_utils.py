@@ -72,7 +72,7 @@ class TestPokemonToStarDiffs:
             jumpMax=3,
             total=11,
         )
-        
+
         # Expected diffs (in STAT_FLAVOR order: power, stamina, skill, jump, speed):
         # power: 4 - 3 = 1
         # stamina: 3 - 2 = 1
@@ -106,7 +106,7 @@ class TestPokemonToStarDiffs:
             jumpMax=3,
             total=11,
         )
-        
+
         result = pokemon_to_star_diffs(desired, pokemon)
         # speed diff should be -4 (unconstrained) since desired <= min
         assert result[4] == -4  # speed is last in STAT_FLAVOR order
@@ -135,7 +135,7 @@ class TestPokemonToStarDiffs:
             jumpMax=4,
             total=15,
         )
-        
+
         result = pokemon_to_star_diffs(desired, pokemon)
         # All should be -4 since desired == min
         assert result == (-4, -4, -4, -4, -4)
@@ -164,7 +164,7 @@ class TestPokemonToStarDiffs:
             jumpMax=5,
             total=10,
         )
-        
+
         result = pokemon_to_star_diffs(desired, pokemon)
         # All should need +3 (5 - 2)
         assert result == (3, 3, 3, 3, 3)
@@ -294,7 +294,7 @@ class TestNatureToIndex:
         # Hardy should be first (index 0)
         hardy = ("Hardy", 0, 4, True)
         assert NATURE_TO_INDEX[hardy] == 0
-        
+
         # Find a non-neutral nature
         adamant = ("Adamant", 0, 3, False)
         assert adamant in NATURE_TO_INDEX

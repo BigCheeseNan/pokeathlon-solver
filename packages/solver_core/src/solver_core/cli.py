@@ -120,12 +120,12 @@ def main() -> int:
     if args.mode in ("pokemon", "candidates"):
         for s in stars:
             if s < 1 or s > 5:
-                raise SystemExit("stars values must be in [1..5] for pokemon/candidates mode")
+                raise SystemExit(
+                    "stars values must be in [1..5] for pokemon/candidates mode"
+                )
 
         desired_stars_speed_order = (
-            reorder_stat_flavor_to_speed(stars)
-            if args.star_order == "power"
-            else stars
+            reorder_stat_flavor_to_speed(stars) if args.star_order == "power" else stars
         )
 
         candidates = find_lowest_total_pokemon(
@@ -137,8 +137,12 @@ def main() -> int:
                 "No Pokemon can meet those minimum stats under the current constraints."
             )
             return 2
-        
-        stats_string = "(power,stamina,skill,jump,speed)" if args.star_order == "power" else "(speed,power,skill,stamina,jump)"
+
+        stats_string = (
+            "(power,stamina,skill,jump,speed)"
+            if args.star_order == "power"
+            else "(speed,power,skill,stamina,jump)"
+        )
 
         print("=== Pokemon search ===")
         print(
@@ -147,8 +151,16 @@ def main() -> int:
         )
         print(f"Candidates considered: {len(candidates)} (lowest total first)")
         for i, p in enumerate(candidates, start=1):
-            base = (p.speed, p.power, p.skill, p.stamina, p.jump) if args.star_order == "speed" else (p.power, p.stamina, p.skill, p.jump, p.speed)
-            max_stats = (p.speedMax, p.powerMax, p.skillMax, p.staminaMax, p.jumpMax) if args.star_order == "speed" else (p.powerMax, p.staminaMax, p.skillMax, p.jumpMax, p.speedMax)
+            base = (
+                (p.speed, p.power, p.skill, p.stamina, p.jump)
+                if args.star_order == "speed"
+                else (p.power, p.stamina, p.skill, p.jump, p.speed)
+            )
+            max_stats = (
+                (p.speedMax, p.powerMax, p.skillMax, p.staminaMax, p.jumpMax)
+                if args.star_order == "speed"
+                else (p.powerMax, p.staminaMax, p.skillMax, p.jumpMax, p.speedMax)
+            )
             print(
                 f"[{i}] {p.name} (id={p.id}) total={p.total} base={base} max={max_stats}"
             )
@@ -166,9 +178,7 @@ def main() -> int:
                 raise SystemExit("stars values must be in [-4..4] for diffs mode")
 
         desired_star_diffs = (
-            reorder_speed_to_stat_flavor(stars)
-            if args.star_order == "speed"
-            else stars
+            reorder_speed_to_stat_flavor(stars) if args.star_order == "speed" else stars
         )
         cases.append(("", desired_star_diffs))
 
@@ -180,6 +190,7 @@ def main() -> int:
     def compute_recipe(flavors: intup) -> tuple[list[str] | None, float | None, str]:
         try:
             from solver_core.bindings import astar_minimal_recipe
+
             recipe, elapsed, err = astar_minimal_recipe(
                 flavors, quiet=True, prune_relevant=True
             )

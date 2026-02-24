@@ -150,7 +150,7 @@ class TestFindFlavors:
         # Negative stars mean we can accept penalties
 
     def test_tie_breaking_same_diffs(self):
-        """Test """
+        """Test"""
         desired_stars = (2, 2, 3, 0, -4)
         modifiers = [44, 9, 9, 9, -26]
 
@@ -168,7 +168,7 @@ class TestFindFlavors:
         # Try various inputs
         test_cases = [
             ((3, 2, 1, 0, -4), [0, 0, 15, 0, 0]),
-            ((2, 2, 2, 0, - 4), [40, 0, 0, 0, 0]),
+            ((2, 2, 2, 0, -4), [40, 0, 0, 0, 0]),
             ((4, 0, 0, 0, -4), [35, 0, 0, 0, 0]),
         ]
 
@@ -178,9 +178,7 @@ class TestFindFlavors:
                 assert result is not None
                 flavors, mildness = result
                 assert sum(flavors) <= 100, f"Total exceeds 100: {flavors}"
-                assert all(
-                    f <= 63 for f in flavors
-                ), f"Flavor exceeds 63: {flavors}"
+                assert all(f <= 63 for f in flavors), f"Flavor exceeds 63: {flavors}"
                 assert all(f >= 0 for f in flavors), f"Negative flavor: {flavors}"
 
     def test_even_preference(self):

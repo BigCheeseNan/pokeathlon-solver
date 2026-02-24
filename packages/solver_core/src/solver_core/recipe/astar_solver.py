@@ -135,7 +135,7 @@ if __name__ == "__main__":
     # "power", "stamina", "skill", "jump", "speed"
     targets = [
         # (50, 50, 0, 0, 0),
-        # # # this one is not optimal with relevant_ingredient pruning (+1)
+        # # this one is not optimal with relevant_ingredient pruning (+1)
         # (50, 0, 50, 0, 0),
         # (0, 0, 50, 0, 50),
         # (50, 0, 0, 0, 50),
@@ -147,7 +147,8 @@ if __name__ == "__main__":
         # (49, 0, 51, 0, 0),
         # (0, 0, 49, 50, 1),
         # (49, 50, 0, 0, 1),
-        (49, 49, 0, 1, 1), # this one takes too long (80 seconds), the heuristic is off by a lot (still faster than BFS though)
+        # # this one takes too long (80 seconds), the heuristic is off by a lot (still faster than BFS though)
+        (49, 49, 0, 1, 1),
         # (1, 1, 1, 1, 1),
         # (1, 1, 1, 1, 0),
         # (63, 1, 1, 1, 1),

@@ -1,6 +1,3 @@
-export type IntTuple = number[];
-export type FiveTuple = [number, number, number, number, number];
-
 export type Nature = [string, number, number, boolean];
 
 export const STAT_FLAVOR = ["power", "stamina", "skill", "jump", "speed"] as const;
@@ -14,7 +11,7 @@ export const STAT_ORDER_SPEED_FIRST = ["speed", "power", "skill", "stamina", "ju
 export const MAX_FLAVOR = 63;
 export const MAX_TOTAL = 100;
 
-export const EFFECTS: Record<string, [FiveTuple, number[]]> = {
+export const EFFECTS: Record<string, [number[], number[]]> = {
     spicy: [
         [4, -2, 0, 0, 0],
         [1, 2, 3, 4],
@@ -105,14 +102,13 @@ export const FEAS_MOD_TABLE: number[][] = [
     [1023, 1023, 1023, 1023, 1023, 1023, 1023, 255, 255, 255],
 ];
 
-export const PAIRS_BY_PRIORITY_PREFER_POWER: Array<[number, number, number]> = ODD_TARGETS.flatMap(
-    (p) => ODD_TARGETS.map((s) => [p + s, p, s] as [number, number, number]),
+export const PAIRS_PREFER_POWER: Array<[number, number, number]> = ODD_TARGETS.flatMap((p) =>
+    ODD_TARGETS.map((s) => [p + s, p, s] as [number, number, number]),
 ).sort((a, b) => b[0] - a[0] || b[1] - a[1] || b[2] - a[2]);
 
-export const PAIRS_BY_PRIORITY_PREFER_STAMINA: Array<[number, number, number]> =
-    ODD_TARGETS.flatMap((p) =>
-        ODD_TARGETS.map((s) => [p + s, p, s] as [number, number, number]),
-    ).sort((a, b) => b[0] - a[0] || b[2] - a[2] || b[1] - a[1]);
+export const PAIRS_PREFER_STAMINA: Array<[number, number, number]> = ODD_TARGETS.flatMap((p) =>
+    ODD_TARGETS.map((s) => [p + s, p, s] as [number, number, number]),
+).sort((a, b) => b[0] - a[0] || b[2] - a[2] || b[1] - a[1]);
 
 export type PokeathlonStats = {
     id: number;
@@ -148,10 +144,10 @@ export type SeedSearchResult = {
 
 export type Solution = {
     nature: Nature;
-    flavors: IntTuple;
-    recipe_effect: IntTuple;
-    nature_effect: IntTuple;
-    required_daily: IntTuple;
+    flavors: number[];
+    recipe_effect: number[];
+    nature_effect: number[];
+    required_daily: number[];
     mildness: number;
 };
 
@@ -168,7 +164,7 @@ export type Result = {
 
 export function seedXValues(xMask: number): number[] {
     const out: number[] = [];
-    for (let x = 1; x <= 31; x += 1) {
+    for (let x = 1; x <= 31; x++) {
         if ((xMask >> x) & 1) out.push(x);
     }
     return out;

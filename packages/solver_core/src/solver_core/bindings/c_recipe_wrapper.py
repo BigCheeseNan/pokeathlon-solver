@@ -70,7 +70,7 @@ class RecipeCalcLib:
 
     def __init__(self, path: Path):
         """Initialize library wrapper.
-        
+
         Args:
             path: Path to the shared library file
         """
@@ -144,13 +144,13 @@ def astar_minimal_recipe(
     lib_path: Path | None = None,
 ) -> tuple[Optional[list[str]], float, int]:
     """Find minimal Aprijuice recipe using A* search.
-    
+
     Args:
         target: Target flavor values (length 5 tuple)
         quiet: Suppress C library output
         prune_relevant: Enable relevant-flavor pruning optimization
         lib_path: Custom library path (default searches standard locations)
-        
+
     Returns:
         Tuple of (recipe_sequence, elapsed_time, error_code)
         - recipe_sequence: List of ingredient names, or None if failed
@@ -159,9 +159,9 @@ def astar_minimal_recipe(
     """
     if len(target) != 5:
         raise ValueError("target must have length 5")
-    
+
     lib = _get_lib(lib_path)
-    
+
     target_arr = (ctypes.c_int * 5)(*target)
     max_steps = 512
     steps_out = (ctypes.c_int * max_steps)()
@@ -171,36 +171,31 @@ def astar_minimal_recipe(
     # Fall back to fd redirection when running against an older DLL
     if lib.recipe_calc_set_verbose is not None:
         lib.recipe_calc_set_verbose(0 if quiet else 1)
-    
+
     start = time.time()
     with _suppress_c_stdout(quiet and lib.recipe_calc_set_verbose is None):
         n = lib.astar_minimal_recipe_c(target_arr, steps_out, max_steps)
     elapsed = time.time() - start
-    
+
     if n < 0:
         return None, elapsed, n
-    
+
     seq = [INGREDIENTS[steps_out[i]] for i in range(n)]
     return seq, elapsed, 0
 
 
 if __name__ == "__main__":
-    target = (49, 49, 0, 1, 1)
-    # target = (49, 50, 0, 0, 1)
-    # target = (49, 51, 0, 0, 0)
-    # target = (51, 49, 0, 0, 0)
-    # target = (49, 0, 51, 0, 0)
-    # target = (0, 0, 49, 0, 51)
-    # target = (50, 0, 50, 0, 0)
-    # target = (50, 50, 0, 0, 0)
-    # target = (1, 1, 1, 1, 0)
-    # target = (1, 1, 1, 1, 1)
-    seq, t, err = astar_minimal_recipe(target, quiet=False, prune_relevant=True)
-    if seq is None:
-        print("Failed (err)", err)
-    else:
-        print("Time: %.3f s" % t)
-        print(f"Recipe sequence: {seq}")
-        for ing, cnt in reduce_recipe(seq, target):
-            print(f"  {ing} x{cnt}")
-        print("Total steps:", len(seq))
+    # power, stamina, skill, jump, speed
+    targets = [
+        (1, 1, 1, 38, 1),
+    ]
+    for target in targets:
+        seq, t, err = astar_minimal_recipe(target, quiet=False, prune_relevant=True)
+        if seq is None:
+            print("Failed (err)", err)
+        else:
+            print("Time: %.3f s" % t)
+            print(f"Recipe sequence: {seq}")
+            for ing, cnt in reduce_recipe(seq, target):
+                print(f"  {ing} x{cnt}")
+            print("Total steps:", len(seq))

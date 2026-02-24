@@ -17,9 +17,7 @@ async function getDeps(): Promise<SolverDeps> {
 }
 
 export async function localPostSolve(body: SolveRequest): Promise<DiffsResponse> {
-    if (body.mode !== "diffs") {
-        throw new Error("Only mode=diffs is supported in local solver");
-    }
+    if (body.mode !== "diffs") throw new Error("Only mode=diffs is supported in local solver");
     if (!body.star_diffs || body.star_diffs.length !== 5) {
         throw new Error("star_diffs must be a list of 5 ints");
     }

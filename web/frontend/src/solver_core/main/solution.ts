@@ -1,9 +1,5 @@
-import type { IntTuple, Nature, Solution } from "../constants";
-import {
-    NATURES,
-    PAIRS_BY_PRIORITY_PREFER_POWER,
-    PAIRS_BY_PRIORITY_PREFER_STAMINA,
-} from "../constants";
+import type { Nature, Solution } from "../constants";
+import { NATURES, PAIRS_PREFER_POWER, PAIRS_PREFER_STAMINA } from "../constants";
 import { findFlavors } from "./flavors";
 import {
     applyNatureEffect,
@@ -14,29 +10,21 @@ import {
 import { isFeasible } from "../utils";
 
 function solveForNature(
-    desiredStars: IntTuple,
+    desiredStars: number[],
     nat: Nature,
     mode: "min" | "max" = "min",
 ): Solution | null {
-    let dailyMods: number[];
+    let dailyMods = [-9, -9, -9, -9, -9];
     if (mode === "min") {
         dailyMods = [9, 9, 9, 9, 9];
-        const preferIdx = desiredStars[0] >= desiredStars[1] ? 0 : 1;
         const pairsByPriority =
-            preferIdx === 0 ? PAIRS_BY_PRIORITY_PREFER_POWER : PAIRS_BY_PRIORITY_PREFER_STAMINA;
+            desiredStars[0] < desiredStars[1] ? PAIRS_PREFER_POWER : PAIRS_PREFER_STAMINA;
 
-        let found = false;
-        for (const [, p, s] of pairsByPriority) {
-            if (isFeasible(nat, p, s)) {
-                dailyMods[0] = p;
-                dailyMods[1] = s;
-                found = true;
-                break;
-            }
-        }
-        if (!found) return null;
-    } else {
-        dailyMods = [-9, -9, -9, -9, -9];
+        const pair = pairsByPriority.find(([, p, s]) => isFeasible(nat, p, s));
+        if (!pair) return null;
+        const [, p, s] = pair;
+        dailyMods[0] = p;
+        dailyMods[1] = s;
     }
 
     const modifiers = dailyMods;
@@ -62,10 +50,8 @@ function solveForNature(
     const minDailyMods = requiredDailyModifiers(desiredStars, recipeModifiers);
     if (!minDailyMods) return null;
 
-    for (let i = 0; i < 5; i += 1) {
-        if (minDailyMods[i] + recipeModifiers[i] < starToMinModifier(desiredStars[i])) {
-            return null;
-        }
+    for (let i = 0; i < 5; i++) {
+        if (minDailyMods[i] + recipeModifiers[i] < starToMinModifier(desiredStars[i])) return null;
     }
 
     return {
@@ -78,7 +64,7 @@ function solveForNature(
     };
 }
 
-export function findAllSolutions(desiredStars: IntTuple, mode: "min" | "max" = "min"): Solution[] {
+export function findAllSolutions(desiredStars: number[], mode: "min" | "max" = "min"): Solution[] {
     const positiveStars = desiredStars.map((s, i) => [i, s] as const).filter(([, s]) => s > 0);
     const negativeStars = desiredStars.map((s, i) => [i, s] as const).filter(([, s]) => s < 0);
 
@@ -86,18 +72,13 @@ export function findAllSolutions(desiredStars: IntTuple, mode: "min" | "max" = "
     if (Math.max(...desiredStars) > 3 && positiveStars.length > 2) return [];
     if (desiredStars.filter((s) => s === 4).length > 1) return [];
     if (positiveStars.reduce((sum, [, s]) => sum + s, 0) > 8) return [];
-    if (desiredStars.filter((s) => s === 4).length === 1 && negativeStars.length === 0) {
-        return [];
-    }
+    if (desiredStars.filter((s) => s === 4).length === 1 && negativeStars.length === 0) return [];
 
-    const forced4Idx =
-        desiredStars.filter((s) => s === 4).length === 1 ? desiredStars.indexOf(4) : null;
+    const forced4Idx = desiredStars.indexOf(4);
 
     const results: Solution[] = [];
     for (const nat of NATURES) {
-        if (forced4Idx !== null && (nat[3] || nat[1] !== forced4Idx)) {
-            continue;
-        }
+        if (forced4Idx !== -1 && (nat[3] || nat[1] !== forced4Idx)) continue;
         const sol = solveForNature(desiredStars, nat, mode);
         if (sol) results.push(sol);
     }

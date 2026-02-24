@@ -1,8 +1,7 @@
-import type { IntTuple } from "../constants";
 import { starToMinModifier } from "./modifiers";
-import { weakestPenalty } from "../utils";
+import { lexGreater, lexGreaterOrEqual, lexLess, lexLessOrEqual, weakestPenalty } from "../utils";
 
-export function minRequiredMildness(
+function minRequiredMildness(
     diffs: number[],
     maxFlav: number,
     secondFlav: number,
@@ -20,26 +19,22 @@ export function minRequiredMildness(
 }
 
 export function findFlavors(
-    desiredStars: IntTuple,
+    desiredStars: number[],
     modifiers: number[],
     mode: "min" | "max" = "min",
-): [IntTuple, number] | null {
+): [number[], number] | null {
     const diffs = desiredStars.map((s, i) => starToMinModifier(s) - modifiers[i]);
-    const flavors = [0, 0, 0, 0, 0];
+    let flavors = [0, 0, 0, 0, 0];
 
     if (diffs.every((d) => d <= 0)) return [flavors, 0];
 
-    const indices = [0, 1, 2, 3, 4].sort((a, b) => {
-        if (diffs[a] === diffs[b]) return b - a;
-        return diffs[a] - diffs[b];
-    });
-    let secondIdx = indices[3];
-    const maxIdx = indices[4];
+    let [secondIdx, maxIdx] = [0, 1, 2, 3, 4]
+        .sort((a, b) => diffs[a] - diffs[b] || b - a)
+        .slice(-2);
 
     const maxDiff = diffs[maxIdx];
     const secondDiff = diffs[secondIdx];
 
-    let mildness = 0;
     let secondFlav = 0;
     let maxFlav = 0;
 
@@ -56,14 +51,14 @@ export function findFlavors(
 
     if (mode === "min" && (maxFlav > 63 || maxFlav + secondFlav > 100)) return null;
     if (maxIdx > secondIdx && maxFlav === secondFlav) {
-        maxFlav += 1;
-        if (mode !== "min" && maxFlav + secondFlav > 100) secondFlav -= 1;
+        maxFlav++;
+        if (maxFlav + secondFlav > 100) secondFlav--;
     }
 
     flavors[secondIdx] = secondFlav;
     flavors[maxIdx] = maxFlav;
 
-    let decrease = weakestPenalty(flavors, maxIdx, secondIdx, mildness);
+    let decrease = maxFlav + secondFlav;
 
     let decreaseIdx = null;
     for (let i = 4; i >= 0; i--) {
@@ -73,53 +68,35 @@ export function findFlavors(
         }
     }
 
-    decreaseIdx ??= [0, 1, 2, 3, 4].reduce((best, i) => {
-        if (diffs[i] < diffs[best]) return i;
-        if (diffs[i] === diffs[best] && i > best) return i;
-        return best;
+    decreaseIdx ??= diffs.reduce((best, d, i) => {
+        return lexLess(d, -i, diffs[best], -best) ? i : best;
     }, 0);
 
-    for (let i = 4; i > decreaseIdx; i--) {
-        if (flavors[i] === 0) {
-            flavors[i] += 1;
-        }
-    }
+    flavors = flavors.map((flavor, i) => (i > decreaseIdx && !flavor ? flavor + 1 : flavor));
 
-    const total = flavors.reduce((a, b) => a + b, 0);
-    if (total === 102) {
-        flavors[secondIdx] -= 1;
-        flavors[maxIdx] -= 1;
-    } else if (total === 101) {
-        if (maxFlav - secondFlav > 0 || (maxFlav - secondFlav === 0 && secondIdx >= maxIdx)) {
-            flavors[maxIdx] -= 1;
+    let sum = flavors.reduce((a, b) => a + b, 0);
+    if (sum === 102) {
+        flavors[secondIdx]--;
+        flavors[maxIdx]--;
+    } else if (sum === 101) {
+        if (lexGreaterOrEqual(maxFlav - secondFlav, secondIdx, 1, maxIdx)) {
+            flavors[maxIdx]--;
         } else {
-            flavors[secondIdx] -= 1;
+            flavors[secondIdx]--;
         }
     }
 
-    const canAdd = (i: number, delta: number): boolean => {
-        const sum = flavors.reduce((a, b) => a + b, 0);
-        if (sum + delta > 100 || flavors[i] % (delta * 2) === 0 || flavors[i] > 61) {
-            return false;
-        }
-        secondIdx = [...flavors].map((f, i) => ({ i, f })).sort((a, b) => b.f - a.f)[1].i;
-        const dec = weakestPenalty(flavors, maxIdx, secondIdx, mildness);
-        if (i === maxIdx || i === secondIdx) {
-            if (dec + delta > -diffs[decreaseIdx]) return false;
-        }
-        if (
-            i !== maxIdx &&
-            (flavors[i] + delta > flavors[maxIdx] ||
-                (flavors[i] + delta === flavors[maxIdx] && maxIdx > i))
-        ) {
-            return false;
-        }
-        return (
-            i === maxIdx ||
-            i === secondIdx ||
-            flavors[i] + delta < flavors[secondIdx] ||
-            (flavors[i] + delta === flavors[secondIdx] && secondIdx <= i)
-        );
+    const mildness = minRequiredMildness(diffs, maxFlav, secondFlav, decreaseIdx);
+
+    const canAdd = (i: number, d: number): boolean => {
+        sum = flavors.reduce((a, b) => a + b, 0);
+        secondIdx = [0, 1, 2, 3, 4].sort((a, b) => flavors[a] - flavors[b] || b - a)[3];
+        const isLargest = i === maxIdx || i === secondIdx;
+        if (sum + d > 100 || flavors[i] % (d * 2) === 0 || flavors[i] > 61) return false;
+        decrease = weakestPenalty(flavors, maxIdx, secondIdx, mildness, d);
+        if (isLargest && decrease > -diffs[decreaseIdx]) return false;
+        if (i !== maxIdx && lexGreater(flavors[i] + d, maxIdx, flavors[maxIdx], i)) return false;
+        return isLargest || lexLessOrEqual(flavors[i] + d, secondIdx, flavors[secondIdx], i);
     };
 
     for (const delta of [1, 2, 1, 2]) {
@@ -127,7 +104,5 @@ export function findFlavors(
             if (canAdd(i, delta)) flavors[i] += delta;
         }
     }
-
-    mildness = minRequiredMildness(diffs, maxFlav, secondFlav, decreaseIdx);
     return [flavors, mildness];
 }

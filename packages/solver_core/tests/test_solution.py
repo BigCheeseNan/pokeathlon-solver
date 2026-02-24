@@ -12,7 +12,7 @@ class TestFindAllSolutions:
         """Test with no stat bonuses needed."""
         desired_stars = (0, 0, 0, 0, 0)
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         # Should find solutions (no aprijuice needed)
         assert len(results) > 0
         # All solutions should have zero or minimal flavors
@@ -24,7 +24,7 @@ class TestFindAllSolutions:
         """Test boosting a single stat."""
         desired_stars = (2, 0, 0, 0, 0)  # Power +2
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         assert len(results) > 0
         # Check that solutions are valid
         for sol in results:
@@ -41,7 +41,7 @@ class TestFindAllSolutions:
         """Test boosting multiple stats."""
         desired_stars = (2, 1, 1, 0, 0)
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         assert len(results) > 0
         # Verify solution structure
         for sol in results:
@@ -53,7 +53,7 @@ class TestFindAllSolutions:
         """Test constraint: max 3 stats with positive bonuses."""
         desired_stars = (1, 1, 1, 1, 0)  # 4 positive stats
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         # Should return empty list (violates len(positive_stars) > 3)
         assert results == []
 
@@ -61,7 +61,7 @@ class TestFindAllSolutions:
         """Test constraint: at most one stat can have +4 bonus."""
         desired_stars = (4, 4, 0, 0, 0)  # Two 4-star stats
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         # Should return empty list
         assert results == []
 
@@ -69,7 +69,7 @@ class TestFindAllSolutions:
         """Test constraint: sum of positive bonuses <= 8."""
         desired_stars = (3, 3, 3, 0, 0)  # Sum = 9
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         # Should return empty list
         assert results == []
 
@@ -77,7 +77,7 @@ class TestFindAllSolutions:
         """Test constraint: 4-star with no negatives is impossible."""
         desired_stars = (4, 0, 0, 0, 0)  # One 4-star, no negatives
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         # Should return empty list
         assert results == []
 
@@ -85,7 +85,7 @@ class TestFindAllSolutions:
         """Test that 4-star with negative stats can work."""
         desired_stars = (4, 0, 0, -2, -2)  # One 4-star, two negatives
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         # Should find solutions (with non-neutral nature boosting power)
         # Only non-neutral natures with plus_idx=0 should work
         assert len(results) > 0
@@ -98,23 +98,23 @@ class TestFindAllSolutions:
         """Test with negative star requirements."""
         desired_stars = (1, 0, -1, 0, 0)
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         # Should find solutions
         assert len(results) > 0
 
     def test_min_vs_max_mode(self):
         """Test that min and max modes produce different solutions."""
         desired_stars = (2, 1, 0, 0, -1)
-        
+
         results_min = find_all_solutions(desired_stars, mode="min")
         results_max = find_all_solutions(desired_stars, mode="max")
-        
+
         results_min.sort(key=lambda s: NATURE_TO_INDEX[s.nature])
         results_max.sort(key=lambda s: NATURE_TO_INDEX[s.nature])
-        
+
         assert len(results_min) > 0
         assert len(results_max) > 0
-        
+
         # Max mode solutions typically use higher mildness
         # but not always 255 depending on constraints
         for sol_max, sol_min in zip(results_max, results_min):
@@ -124,18 +124,18 @@ class TestFindAllSolutions:
         """Test that solutions have correct structure."""
         desired_stars = (1, 1, 0, 0, 0)
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         assert len(results) > 0
         sol = results[0]
-        
+
         # Verify Solution fields
-        assert hasattr(sol, 'nature')
-        assert hasattr(sol, 'flavors')
-        assert hasattr(sol, 'recipe_effect')
-        assert hasattr(sol, 'nature_effect')
-        assert hasattr(sol, 'required_daily')
-        assert hasattr(sol, 'mildness')
-        
+        assert hasattr(sol, "nature")
+        assert hasattr(sol, "flavors")
+        assert hasattr(sol, "recipe_effect")
+        assert hasattr(sol, "nature_effect")
+        assert hasattr(sol, "required_daily")
+        assert hasattr(sol, "mildness")
+
         # Verify nature tuple structure
         name, plus_idx, minus_idx, is_neutral = sol.nature
         assert isinstance(name, str)
@@ -147,7 +147,7 @@ class TestFindAllSolutions:
         """Test that all solutions respect flavor constraints."""
         desired_stars = (3, 2, 0, 0, -4)
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         for sol in results:
             # Each flavor <= 63
             assert all(f <= 63 for f in sol.flavors)
@@ -160,7 +160,7 @@ class TestFindAllSolutions:
         """Test that all solutions respect daily modifier constraints."""
         desired_stars = (2, 2, 1, 0, -4)
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         assert len(results) > 0
         for sol in results:
             for daily in sol.required_daily:
@@ -173,7 +173,7 @@ class TestFindAllSolutions:
         """Test edge case with maximum legal boosts."""
         desired_stars = (3, 3, 2, 0, -4)  # Sum = 8, three positive
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         assert len(results) > 0
         # Should find some solutions
         # This is at the boundary of what's possible
@@ -182,7 +182,7 @@ class TestFindAllSolutions:
         """Test with all negative stars."""
         desired_stars = (-1, -1, -1, -1, -1)
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         # Should find solutions (easy case, just need penalties)
         assert len(results) > 0
 
@@ -190,7 +190,7 @@ class TestFindAllSolutions:
         """Test with mixed positive and negative requirements."""
         desired_stars = (2, 1, 0, -1, -2)
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         # Should find solutions
         assert len(results) > 0
         for sol in results:
@@ -202,7 +202,7 @@ class TestFindAllSolutions:
         """Test that only appropriate natures are used for 4-star boosts."""
         desired_stars = (4, 1, 0, 0, -4)
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         # Only non-neutral natures with plus_idx=0 should appear
         assert len(results) > 0
         for sol in results:
@@ -218,16 +218,18 @@ class TestFindAllSolutions:
             (4, 0, 0, 0, 0),  # 4-star without negative
             (2, 2, 2, 0, 0),  # min 2-star without negative
         ]
-        
+
         for desired_stars in impossible_cases:
             results = find_all_solutions(desired_stars, mode="min")
-            assert results == [], f"Expected empty for {desired_stars}, got {len(results)} results"
+            assert (
+                results == []
+            ), f"Expected empty for {desired_stars}, got {len(results)} results"
 
     def test_return_type(self):
         """Test that return type is always a list."""
         desired_stars = (1, 0, 0, 0, 0)
         results = find_all_solutions(desired_stars, mode="min")
-        
+
         assert isinstance(results, list)
         for sol in results:
             assert isinstance(sol, Solution)
@@ -235,11 +237,11 @@ class TestFindAllSolutions:
     def test_consistency_across_modes(self):
         """Test that both modes handle the same input without errors."""
         desired_stars = (2, 1, 1, 0, -3)
-        
+
         # Both modes should work without crashing
         results_min = find_all_solutions(desired_stars, mode="min")
         results_max = find_all_solutions(desired_stars, mode="max")
-        
+
         # Both should return lists
         assert isinstance(results_min, list)
         assert isinstance(results_max, list)

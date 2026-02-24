@@ -7,7 +7,7 @@ import pytest
 def sample_pokemon_stats():
     """Sample Pokemon stats for testing."""
     from solver_core.constants import PokeathlonStats
-    
+
     return PokeathlonStats(
         id=1,
         dex_id="001",
@@ -35,8 +35,8 @@ def sample_pokemon_stats():
 def sample_natures():
     """Sample natures for testing."""
     return [
-        ("Hardy", 0, 4, True),      # Neutral
-        ("Adamant", 0, 2, False),   # +Power, -Skill
-        ("Bold", 1, 0, False),      # +Stamina, -Power
-        ("Timid", 4, 0, False),     # +Speed, -Power
+        ("Hardy", 0, 4, True),  # Neutral
+        ("Adamant", 0, 2, False),  # +Power, -Skill
+        ("Bold", 1, 0, False),  # +Stamina, -Power
+        ("Timid", 4, 0, False),  # +Speed, -Power
     ]

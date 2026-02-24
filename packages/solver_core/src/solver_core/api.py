@@ -281,6 +281,7 @@ def solve_from_star_diffs(
         ranked.sort(
             key=lambda r: (
                 r.ingredients,
+                r.sol.mildness,
                 -r.seed_result.streak if r.seed_result is not None else 10**9,
                 -r.seed_result.count if r.seed_result is not None else 10**9,
                 NATURE_TO_INDEX[r.sol.nature],

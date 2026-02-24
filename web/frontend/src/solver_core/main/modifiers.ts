@@ -1,10 +1,8 @@
-import type { IntTuple, Nature } from "../constants";
-import { clampDailyRequirement, weakestPenalty } from "../utils";
+import type { Nature } from "../constants";
+import { clampDailyRequirement, lexLess, weakestPenalty } from "../utils";
 
 export function starToMinModifier(star: number): number {
-    if (star < -4 || star > 4) {
-        throw new Error(`Star bonus must be in [-4..4], got ${star}`);
-    }
+    if (star < -4 || star > 4) throw new Error(`Star bonus must be in [-4..4], got ${star}`);
 
     if (star <= -4) return -(10 ** 9);
     if (star === -3) return -119;
@@ -26,20 +24,18 @@ export function applyNatureEffect(nature: Nature): number[] {
     return eff;
 }
 
-export function applyRecipeEffect(flavors: IntTuple, mildness = 0): number[] {
+export function applyRecipeEffect(flavors: number[], mildness = 0): number[] {
     if (flavors.every((f) => f === 0)) return [0, 0, 0, 0, 0];
 
     const strongestIdx = flavors.reduce((best, val, i) => (val > flavors[best] ? i : best), 0);
-    const weakestIdx = flavors.reduce(
-        (best, val, i) => (val < flavors[best] || (val === flavors[best] && i > best) ? i : best),
-        0,
-    );
+    const weakestIdx = flavors.reduce((best, val, i) => {
+        return lexLess(val, -i, flavors[best], -best) ? i : best;
+    }, 0);
 
     const remaining = [0, 1, 2, 3, 4].filter((i) => i !== strongestIdx);
-    const secondIdx = remaining.reduce(
-        (best, i) => (flavors[i] > flavors[best] ? i : best),
-        remaining[0],
-    );
+    const secondIdx = remaining.reduce((best, i) => {
+        return flavors[i] > flavors[best] ? i : best;
+    }, remaining[0]);
 
     const x = flavors[strongestIdx];
     const y = flavors[secondIdx];
@@ -53,18 +49,15 @@ export function applyRecipeEffect(flavors: IntTuple, mildness = 0): number[] {
 }
 
 export function requiredDailyModifiers(
-    desiredStars: IntTuple,
-    baseModifiers: Iterable<number>,
-): IntTuple | null {
-    const mins = desiredStars.map((s) => starToMinModifier(s));
-    const reqs: number[] = [];
-    let idx = 0;
-    for (const base of baseModifiers) {
-        const need = mins[idx] - base;
+    desiredStars: number[],
+    baseModifiers: number[],
+): number[] | null {
+    const reqs = baseModifiers.map((base, idx) => {
+        const need = starToMinModifier(desiredStars[idx]) - base;
         const req = clampDailyRequirement(need);
-        if (req === null) return null;
-        reqs.push(req);
-        idx += 1;
-    }
-    return reqs;
+        return req;
+    });
+
+    if (reqs.includes(null)) return null;
+    return reqs as number[];
 }
