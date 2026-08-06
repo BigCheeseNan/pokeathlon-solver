@@ -18,7 +18,7 @@ function CandidateList({ candidates, selectedPokemon, onSelect }: Props) {
                 >
                     <img
                         className="sprite"
-                        src={`/sprites/${p.dex_id}.png`}
+                        src={`${import.meta.env.BASE_URL}sprites/${p.dex_id}.png`}
                         alt={p.name}
                         onError={(e) => (e.currentTarget.style.display = "none")}
                     />

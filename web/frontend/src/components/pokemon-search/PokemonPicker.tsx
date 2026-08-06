@@ -44,7 +44,7 @@ function PokemonPicker({
                 <div className="row">
                     <img
                         className="sprite"
-                        src={`/sprites/${selectedPokemon.dex_id}.png`}
+                        src={`${import.meta.env.BASE_URL}sprites/${selectedPokemon.dex_id}.png`}
                         alt={selectedPokemon.name}
                         onError={(e) => (e.currentTarget.style.display = "none")}
                     />
